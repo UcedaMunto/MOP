@@ -25,6 +25,8 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
     TokenVerifyView,
 )
+from microservicios_eventos.urls import api_urlpatterns
+from microservicios_eventos import views as eventos_views
 
 def api_info(request):
     """Información general de la API"""
@@ -38,29 +40,25 @@ def api_info(request):
             'schema': '/api/schema/',
         },
         'endpoints': {
-            'eventos': '/eventos/api/',
-            'admin': '/admin/',
-            'health': '/eventos/health/',
+            'api_principal': '/api/',
+            'health': '/api/health/',
             'api_auth': '/api-auth/'
         },
-        'test_endpoints': {
-            'tipos_evento': '/eventos/api/tipos-evento/',
-            'niveles_gravedad': '/eventos/api/niveles-gravedad/',
-            'estados_evento': '/eventos/api/estados-evento/',
-            'eventos_trafico': '/eventos/api/eventos/',
-            'rutas_afectadas': '/eventos/api/rutas-afectadas/',
+        'api_endpoints': {
+            'tipos_evento': '/api/tipos-evento/',
+            'niveles_gravedad': '/api/niveles-gravedad/',
+            'estados_evento': '/api/estados-evento/',
+            'eventos_trafico': '/api/eventos/',
+            'rutas_afectadas': '/api/rutas-afectadas/',
         }
     })
 
 urlpatterns = [
-    # Admin
-    path('admin/', admin.site.urls),
-    
     # Home principal
-    path('', include(('microservicios_eventos.urls', 'microservicios_eventos'), namespace='home')),
+    path('', eventos_views.home, name='home'),
     
-    # API de eventos 
-    path('eventos/', include(('microservicios_eventos.urls', 'microservicios_eventos'), namespace='eventos')),
+    # API de eventos
+    path('api/', include((api_urlpatterns, 'microservicios_eventos'), namespace='api')),
     
     # JWT Authentication endpoints
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

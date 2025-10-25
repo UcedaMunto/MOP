@@ -219,7 +219,7 @@
     let authToken = localStorage.getItem('authToken');
     
     // API Base URL
-    const API_BASE = '/eventos/api/';
+    const API_BASE = '/api/';
     const AUTH_BASE = '/api/';
     
     // Mapeo de endpoints
@@ -238,8 +238,8 @@
             labels: {'nombre': 'Nombre', 'descripcion': 'Descripción', 'codigo': 'Código'}
         },
         'niveles-gravedad': {
-            fields: ['nombre', 'descripcion', 'nivel_numerico'],
-            labels: {'nombre': 'Nombre', 'descripcion': 'Descripción', 'nivel_numerico': 'Nivel Numérico'}
+            fields: ['codigo', 'nombre', 'orden'],
+            labels: {'codigo': 'Código', 'nombre': 'Nombre', 'orden': 'Orden'}
         },
         'estados-evento': {
             fields: ['nombre', 'descripcion', 'codigo'],
@@ -397,12 +397,13 @@
                                value="${value ? new Date(value).toISOString().slice(0, 16) : ''}">
                     </div>
                 `;
-            } else if (field === 'nivel_numerico') {
+            } else if (field === 'orden') {
                 html += `
                     <div class="mb-3">
                         <label for="${field}" class="form-label">${label}</label>
                         <input type="number" class="form-control" id="${field}" name="${field}" 
-                               value="${value}" min="1" max="10">
+                               value="${value}" min="1" max="32767" required>
+                        <div class="form-text">Orden del nivel (1=menor gravedad, mayor número=más grave)</div>
                     </div>
                 `;
             } else if (field === 'descripcion' || field === 'descripcion_impacto') {
@@ -413,10 +414,21 @@
                     </div>
                 `;
             } else {
+                const isRequired = (currentTable === 'niveles-gravedad' && (field === 'codigo' || field === 'nombre'));
+                const maxLength = (currentTable === 'niveles-gravedad' && field === 'codigo') ? '16' : 
+                                 (currentTable === 'niveles-gravedad' && field === 'nombre') ? '32' : '';
+                const style = (currentTable === 'niveles-gravedad' && field === 'codigo') ? 'text-transform: uppercase;' : '';
+                
                 html += `
                     <div class="mb-3">
-                        <label for="${field}" class="form-label">${label}</label>
-                        <input type="text" class="form-control" id="${field}" name="${field}" value="${value}">
+                        <label for="${field}" class="form-label">${label}${isRequired ? ' <span class="text-danger">*</span>' : ''}</label>
+                        <input type="text" class="form-control" id="${field}" name="${field}" value="${value}"
+                               ${isRequired ? 'required' : ''} ${maxLength ? `maxlength="${maxLength}"` : ''} 
+                               style="${style}">
+                        ${currentTable === 'niveles-gravedad' && field === 'codigo' ? 
+                            '<div class="form-text">Código único del nivel (máximo 16 caracteres, se convertirá a mayúsculas)</div>' : ''}
+                        ${currentTable === 'niveles-gravedad' && field === 'nombre' ? 
+                            '<div class="form-text">Nombre descriptivo del nivel (máximo 32 caracteres)</div>' : ''}
                     </div>
                 `;
             }
@@ -438,7 +450,26 @@
         
         const data = {};
         for (let [key, value] of formData.entries()) {
-            data[key] = value;
+            // Procesar campos específicos para niveles de gravedad
+            if (currentTable === 'niveles-gravedad') {
+                if (key === 'codigo') {
+                    data[key] = value.toUpperCase().trim();
+                } else if (key === 'orden') {
+                    data[key] = parseInt(value);
+                } else {
+                    data[key] = value.trim();
+                }
+            } else {
+                data[key] = value;
+            }
+        }
+        
+        // Validación específica para niveles de gravedad
+        if (currentTable === 'niveles-gravedad') {
+            if (!data.codigo || !data.nombre || !data.orden || data.orden <= 0) {
+                alert('Por favor, complete todos los campos requeridos correctamente.');
+                return;
+            }
         }
         
         const method = itemId ? 'PUT' : 'POST';

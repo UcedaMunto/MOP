@@ -1,9 +1,5 @@
 from django.shortcuts import render
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
-from django.utils.decorators import method_decorator
-from django.views import View
 from django.utils import timezone
 from django.db.models import Q, Count
 from rest_framework import viewsets, status, filters
@@ -573,6 +569,9 @@ class EventoRutaAfectadaViewSet(viewsets.ModelViewSet):
         if evento_id is not None:
             queryset = queryset.filter(evento_id=evento_id)
         return queryset.select_related('evento')
+
+
+
 
 
 def home(request):
