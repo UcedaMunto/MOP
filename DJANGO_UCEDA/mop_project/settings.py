@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'microservicios_eventos',
 ]
 
 MIDDLEWARE = [
@@ -82,8 +83,19 @@ DATABASES = {
         'PASSWORD': config('DB_PASSWORD', default=''),
         'HOST': config('DB_HOST', default=''),
         'PORT': config('DB_PORT', default=''),
+    },
+    'eventos_trafico': {
+        'ENGINE': config('DB_ENGINE', default='django.db.backends.postgresql'),
+        'NAME': 'eventos_trafico',
+        'USER': config('DB_USER', default=''),
+        'PASSWORD': config('DB_PASSWORD', default=''),
+        'HOST': config('DB_HOST', default=''),
+        'PORT': config('DB_PORT', default=''),
     }
 }
+
+# Database Router para dirigir las apps a sus respectivas bases de datos
+DATABASE_ROUTERS = ['mop_project.db_router.DatabaseRouter']
 
 
 # Password validation

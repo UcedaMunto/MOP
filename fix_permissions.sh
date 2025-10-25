@@ -1,0 +1,15 @@
+#!/bin/bash
+
+echo "=== SCRIPT DE CORRECCIÓN DE PERMISOS ==="
+echo "Este script corrige los permisos de los archivos Django"
+echo "Ejecuta este comando con sudo:"
+echo ""
+echo "sudo chown -R uceda:uceda /home/uceda/Documents/MOP/DJANGO_UCEDA/"
+echo ""
+echo "Luego ejecuta:"
+echo "chmod +x /home/uceda/Documents/MOP/DJANGO_UCEDA/manage.py"
+echo ""
+echo "Para verificar los permisos:"
+echo "ls -la /home/uceda/Documents/MOP/DJANGO_UCEDA/"
+echo ""
+echo "=== FIN DEL SCRIPT ==="
