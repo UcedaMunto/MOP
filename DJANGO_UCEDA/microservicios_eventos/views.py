@@ -4,80 +4,456 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.utils.decorators import method_decorator
 from django.views import View
-from .models import EventoTrafico
+from django.utils import timezone
+from django.db.models import Q
+from rest_framework import viewsets, status, filters
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+from rest_framework.pagination import PageNumberPagination
 import json
+from decimal import Decimal
+
+from .models import TipoEvento, NivelGravedad, EstadoEvento, EventoTrafico, EventoRutaAfectada
+from .serializers import (
+    TipoEventoSerializer,
+    NivelGravedadSerializer, 
+    EstadoEventoSerializer,
+    EventoTraficoSerializer,
+    EventoTraficoSimpleSerializer,
+    EventoTraficoCreateUpdateSerializer,
+    EventoRutaAfectadaSerializer
+)
+from .filters import (
+    TipoEventoFilter,
+    NivelGravedadFilter,
+    EstadoEventoFilter,
+    EventoTraficoFilter,
+    EventoRutaAfectadaFilter
+)
+from .permissions import (
+    CanManageCatalogs,
+    CanManageEvents,
+    CanManageRoutes,
+    IsOwnerOrReadOnly
+)
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter, OpenApiExample
+from drf_spectacular.types import OpenApiTypes
 
 
-class EventoTraficoListView(View):
-    """
-    Vista para listar todos los eventos de tráfico
-    """
-    def get(self, request):
-        eventos = EventoTrafico.objects.all()
-        data = []
-        for evento in eventos:
-            data.append({
-                'id': evento.id,
-                'tipo_evento': evento.tipo_evento,
-                'descripcion': evento.descripcion,
-                'ubicacion': evento.ubicacion,
-                'estado': evento.estado,
-                'fecha_creacion': evento.fecha_creacion.isoformat(),
-                'prioridad': evento.prioridad,
-            })
-        return JsonResponse({'eventos': data})
+# Paginación personalizada para eventos
+class EventoPagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+    
+    def get_paginated_response(self, data):
+        return Response({
+            'pagination': {
+                'count': self.page.paginator.count,
+                'next': self.get_next_link(),
+                'previous': self.get_previous_link(),
+                'page_size': self.page_size,
+                'current_page': self.page.number,
+                'total_pages': self.page.paginator.num_pages
+            },
+            'results': data
+        })
 
 
-@method_decorator(csrf_exempt, name='dispatch')
-class EventoTraficoCreateView(View):
+# Paginación para catálogos (más pequeña)
+class CatalogPagination(PageNumberPagination):
+    page_size = 50
+    page_size_query_param = 'page_size'
+    max_page_size = 200
+
+
+@extend_schema_view(
+    list=extend_schema(
+        tags=['Catálogos'],
+        summary="Listar tipos de evento",
+        description="Obtiene una lista paginada de todos los tipos de evento activos"
+    ),
+    create=extend_schema(
+        tags=['Catálogos'],
+        summary="Crear tipo de evento",
+        description="Crea un nuevo tipo de evento (requiere permisos de staff)"
+    ),
+    retrieve=extend_schema(
+        tags=['Catálogos'],
+        summary="Obtener tipo de evento",
+        description="Obtiene los detalles de un tipo de evento específico"
+    ),
+    update=extend_schema(
+        tags=['Catálogos'],
+        summary="Actualizar tipo de evento",
+        description="Actualiza completamente un tipo de evento (requiere permisos de staff)"
+    ),
+    partial_update=extend_schema(
+        tags=['Catálogos'],
+        summary="Actualizar parcialmente tipo de evento",
+        description="Actualiza parcialmente un tipo de evento (requiere permisos de staff)"
+    ),
+    destroy=extend_schema(
+        tags=['Catálogos'],
+        summary="Eliminar tipo de evento",
+        description="Elimina un tipo de evento (requiere permisos de staff)"
+    )
+)
+class TipoEventoViewSet(viewsets.ModelViewSet):
     """
-    Vista para crear nuevos eventos de tráfico
+    ViewSet para gestionar tipos de eventos
+    
+    Permite operaciones CRUD completas:
+    - GET /tipos-evento/ - Lista todos los tipos de evento
+    - POST /tipos-evento/ - Crea un nuevo tipo de evento
+    - GET /tipos-evento/{id}/ - Obtiene un tipo de evento específico
+    - PUT /tipos-evento/{id}/ - Actualiza completamente un tipo de evento
+    - PATCH /tipos-evento/{id}/ - Actualiza parcialmente un tipo de evento
+    - DELETE /tipos-evento/{id}/ - Elimina un tipo de evento
     """
-    def post(self, request):
-        try:
-            data = json.loads(request.body)
-            evento = EventoTrafico.objects.create(
-                tipo_evento=data.get('tipo_evento'),
-                descripcion=data.get('descripcion'),
-                ubicacion=data.get('ubicacion'),
-                latitud=data.get('latitud'),
-                longitud=data.get('longitud'),
-                prioridad=data.get('prioridad', 1),
-                reportado_por=data.get('reportado_por', 'Sistema')
+    queryset = TipoEvento.objects.filter(activo=True)
+    serializer_class = TipoEventoSerializer
+    permission_classes = [CanManageCatalogs]
+    pagination_class = CatalogPagination
+    filterset_class = TipoEventoFilter
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['codigo', 'nombre', 'descripcion']
+    ordering_fields = ['codigo', 'nombre', 'creado_en']
+    ordering = ['codigo']
+
+    @extend_schema(
+        tags=['Catálogos'],
+        summary="Listar tipos de evento inactivos",
+        description="Obtiene una lista de todos los tipos de evento inactivos"
+    )
+    @action(detail=False, methods=['get'])
+    def inactivos(self, request):
+        """Endpoint para obtener tipos de evento inactivos"""
+        queryset = TipoEvento.objects.filter(activo=False)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @extend_schema(
+        tags=['Catálogos'],
+        summary="Activar tipo de evento",
+        description="Cambia el estado de un tipo de evento a activo"
+    )
+    @action(detail=True, methods=['post'])
+    def activar(self, request, pk=None):
+        """Activar un tipo de evento"""
+        tipo_evento = self.get_object()
+        tipo_evento.activo = True
+        tipo_evento.save()
+        return Response({'mensaje': 'Tipo de evento activado exitosamente'})
+
+    @extend_schema(
+        tags=['Catálogos'],
+        summary="Desactivar tipo de evento",
+        description="Cambia el estado de un tipo de evento a inactivo"
+    )
+    @action(detail=True, methods=['post'])
+    def desactivar(self, request, pk=None):
+        """Desactivar un tipo de evento"""
+        tipo_evento = self.get_object()
+        tipo_evento.activo = False
+        tipo_evento.save()
+        return Response({'mensaje': 'Tipo de evento desactivado exitosamente'})
+
+
+class NivelGravedadViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet para gestionar niveles de gravedad
+    
+    Permite operaciones CRUD completas con ordenamiento por nivel
+    """
+    queryset = NivelGravedad.objects.all()
+    serializer_class = NivelGravedadSerializer
+    permission_classes = [CanManageCatalogs]
+    pagination_class = CatalogPagination
+    filterset_class = NivelGravedadFilter
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['codigo', 'nombre']
+    ordering_fields = ['codigo', 'nombre', 'orden', 'creado_en']
+    ordering = ['orden']
+
+
+class EstadoEventoViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet para gestionar estados de eventos
+    
+    Permite operaciones CRUD completas
+    """
+    queryset = EstadoEvento.objects.all()
+    serializer_class = EstadoEventoSerializer
+    permission_classes = [CanManageCatalogs]
+    pagination_class = CatalogPagination
+    filterset_class = EstadoEventoFilter
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['codigo', 'nombre']
+    ordering_fields = ['codigo', 'nombre', 'creado_en']
+    ordering = ['codigo']
+
+
+@extend_schema_view(
+    list=extend_schema(
+        tags=['Eventos'],
+        summary="Listar eventos de tráfico",
+        description="Obtiene una lista paginada de eventos de tráfico con filtros avanzados",
+        parameters=[
+            OpenApiParameter('tipo_codigo', OpenApiTypes.STR, description='Filtrar por código de tipo'),
+            OpenApiParameter('estado_codigo', OpenApiTypes.STR, description='Filtrar por código de estado'),
+            OpenApiParameter('gravedad_codigo', OpenApiTypes.STR, description='Filtrar por código de gravedad'),
+            OpenApiParameter('fecha_ocurrencia_desde', OpenApiTypes.DATETIME, description='Eventos desde esta fecha'),
+            OpenApiParameter('fecha_ocurrencia_hasta', OpenApiTypes.DATETIME, description='Eventos hasta esta fecha'),
+            OpenApiParameter('lat', OpenApiTypes.DECIMAL, description='Latitud para filtro geográfico'),
+            OpenApiParameter('lng', OpenApiTypes.DECIMAL, description='Longitud para filtro geográfico'),
+            OpenApiParameter('radio', OpenApiTypes.INT, description='Radio en metros para filtro geográfico'),
+            OpenApiParameter('vigentes', OpenApiTypes.BOOL, description='Solo eventos vigentes (no expirados)'),
+            OpenApiParameter('search', OpenApiTypes.STR, description='Búsqueda en título y descripción'),
+        ]
+    ),
+    create=extend_schema(
+        tags=['Eventos'],
+        summary="Crear evento de tráfico",
+        description="Crea un nuevo evento de tráfico (requiere autenticación)"
+    ),
+    retrieve=extend_schema(
+        tags=['Eventos'],
+        summary="Obtener evento de tráfico",
+        description="Obtiene los detalles completos de un evento de tráfico específico"
+    ),
+    update=extend_schema(
+        tags=['Eventos'],
+        summary="Actualizar evento de tráfico",
+        description="Actualiza completamente un evento de tráfico (requiere autenticación)"
+    ),
+    partial_update=extend_schema(
+        tags=['Eventos'],
+        summary="Actualizar parcialmente evento",
+        description="Actualiza parcialmente un evento de tráfico (requiere autenticación)"
+    ),
+    destroy=extend_schema(
+        tags=['Eventos'],
+        summary="Eliminar evento de tráfico",
+        description="Eliminación lógica de un evento de tráfico (requiere autenticación/staff)"
+    )
+)
+class EventoTraficoViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet principal para gestionar eventos de tráfico
+    
+    Proporciona API REST completa con funcionalidades específicas:
+    - Filtrado por ubicación geográfica
+    - Búsqueda por fechas
+    - Estados y tipos
+    - Endpoints personalizados para casos de uso específicos
+    """
+    queryset = EventoTrafico.objects.filter(eliminado_en__isnull=True)
+    permission_classes = [CanManageEvents]
+    pagination_class = EventoPagination
+    filterset_class = EventoTraficoFilter
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['titulo', 'descripcion', 'tipo__nombre', 'estado__nombre']
+    ordering_fields = [
+        'fecha_ocurrencia', 'fecha_reporte', 'creado_en', 
+        'tipo__nombre', 'gravedad__orden', 'estado__nombre'
+    ]
+    ordering = ['-fecha_ocurrencia']
+
+    def get_serializer_class(self):
+        """Usar diferentes serializers según la acción"""
+        if self.action == 'list':
+            return EventoTraficoSimpleSerializer
+        elif self.action in ['create', 'update', 'partial_update']:
+            return EventoTraficoCreateUpdateSerializer
+        return EventoTraficoSerializer
+
+    def get_queryset(self):
+        """Aplicar filtros personalizados"""
+        queryset = super().get_queryset()
+        
+        # Filtrar por tipo de evento
+        tipo = self.request.query_params.get('tipo', None)
+        if tipo is not None:
+            queryset = queryset.filter(tipo__codigo=tipo)
+        
+        # Filtrar por estado
+        estado = self.request.query_params.get('estado', None)
+        if estado is not None:
+            queryset = queryset.filter(estado__codigo=estado)
+        
+        # Filtrar por gravedad
+        gravedad = self.request.query_params.get('gravedad', None)
+        if gravedad is not None:
+            queryset = queryset.filter(gravedad__codigo=gravedad)
+        
+        # Filtrar por rango de fechas
+        fecha_desde = self.request.query_params.get('fecha_desde', None)
+        fecha_hasta = self.request.query_params.get('fecha_hasta', None)
+        
+        if fecha_desde:
+            try:
+                fecha_desde = timezone.datetime.fromisoformat(fecha_desde.replace('Z', '+00:00'))
+                queryset = queryset.filter(fecha_ocurrencia__gte=fecha_desde)
+            except ValueError:
+                pass
+        
+        if fecha_hasta:
+            try:
+                fecha_hasta = timezone.datetime.fromisoformat(fecha_hasta.replace('Z', '+00:00'))
+                queryset = queryset.filter(fecha_ocurrencia__lte=fecha_hasta)
+            except ValueError:
+                pass
+        
+        # Filtrar por ubicación (dentro de un radio)
+        lat = self.request.query_params.get('lat', None)
+        lng = self.request.query_params.get('lng', None)
+        radio = self.request.query_params.get('radio', None)
+        
+        if lat and lng and radio:
+            try:
+                lat = Decimal(lat)
+                lng = Decimal(lng)
+                radio = Decimal(radio)
+                # Filtro básico por coordenadas (se puede mejorar con PostGIS)
+                queryset = queryset.filter(
+                    latitud__range=[lat - radio/111000, lat + radio/111000],
+                    longitud__range=[lng - radio/111000, lng + radio/111000]
+                )
+            except (ValueError, TypeError):
+                pass
+        
+        # Filtrar eventos vigentes
+        solo_vigentes = self.request.query_params.get('vigentes', None)
+        if solo_vigentes and solo_vigentes.lower() == 'true':
+            queryset = queryset.filter(
+                Q(expira_en__isnull=True) | Q(expira_en__gt=timezone.now())
             )
-            return JsonResponse({
-                'mensaje': 'Evento creado exitosamente',
-                'evento_id': evento.id
-            }, status=201)
-        except Exception as e:
-            return JsonResponse({
-                'error': str(e)
-            }, status=400)
+        
+        return queryset.select_related('tipo', 'gravedad', 'estado')
+
+    @action(detail=False, methods=['get'])
+    def activos(self, request):
+        """Obtener solo eventos activos/vigentes"""
+        queryset = self.get_queryset().filter(
+            Q(expira_en__isnull=True) | Q(expira_en__gt=timezone.now())
+        )
+        serializer = EventoTraficoSimpleSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def por_ubicacion(self, request):
+        """Obtener eventos cerca de una ubicación específica"""
+        lat = request.query_params.get('lat')
+        lng = request.query_params.get('lng')
+        radio = request.query_params.get('radio', '1000')  # Radio en metros
+        
+        if not lat or not lng:
+            return Response(
+                {'error': 'Se requieren parámetros lat y lng'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            lat = Decimal(lat)
+            lng = Decimal(lng)
+            radio = Decimal(radio)
+            
+            # Conversión básica: 1 grado ≈ 111km
+            radio_grados = radio / Decimal('111000')
+            
+            queryset = self.get_queryset().filter(
+                latitud__range=[lat - radio_grados, lat + radio_grados],
+                longitud__range=[lng - radio_grados, lng + radio_grados]
+            )
+            
+            serializer = EventoTraficoSimpleSerializer(queryset, many=True)
+            return Response(serializer.data)
+            
+        except (ValueError, TypeError):
+            return Response(
+                {'error': 'Coordenadas o radio inválidos'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    @action(detail=False, methods=['get'])
+    def estadisticas(self, request):
+        """Obtener estadísticas de eventos"""
+        queryset = self.get_queryset()
+        
+        # Estadísticas por tipo
+        tipos_stats = {}
+        for evento in queryset:
+            tipo = evento.tipo.nombre
+            tipos_stats[tipo] = tipos_stats.get(tipo, 0) + 1
+        
+        # Estadísticas por estado
+        estados_stats = {}
+        for evento in queryset:
+            estado = evento.estado.nombre
+            estados_stats[estado] = estados_stats.get(estado, 0) + 1
+        
+        # Eventos vigentes
+        vigentes = queryset.filter(
+            Q(expira_en__isnull=True) | Q(expira_en__gt=timezone.now())
+        ).count()
+        
+        return Response({
+            'total_eventos': queryset.count(),
+            'eventos_vigentes': vigentes,
+            'por_tipo': tipos_stats,
+            'por_estado': estados_stats
+        })
+
+    @action(detail=True, methods=['post'])
+    def marcar_resuelto(self, request, pk=None):
+        """Marcar un evento como resuelto"""
+        evento = self.get_object()
+        try:
+            estado_resuelto = EstadoEvento.objects.get(codigo='RESUELTO')
+            evento.estado = estado_resuelto
+            evento.save()
+            return Response({'mensaje': 'Evento marcado como resuelto'})
+        except EstadoEvento.DoesNotExist:
+            return Response(
+                {'error': 'Estado RESUELTO no encontrado'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    def perform_destroy(self, instance):
+        """Eliminación lógica en lugar de física"""
+        instance.eliminado_en = timezone.now()
+        instance.save()
 
 
-def evento_detail_view(request, evento_id):
+class EventoRutaAfectadaViewSet(viewsets.ModelViewSet):
     """
-    Vista para obtener detalles de un evento específico
+    ViewSet para gestionar rutas afectadas por eventos
     """
-    try:
-        evento = EventoTrafico.objects.get(id=evento_id)
-        data = {
-            'id': evento.id,
-            'tipo_evento': evento.tipo_evento,
-            'descripcion': evento.descripcion,
-            'ubicacion': evento.ubicacion,
-            'latitud': str(evento.latitud) if evento.latitud else None,
-            'longitud': str(evento.longitud) if evento.longitud else None,
-            'estado': evento.estado,
-            'fecha_creacion': evento.fecha_creacion.isoformat(),
-            'fecha_actualizacion': evento.fecha_actualizacion.isoformat(),
-            'fecha_resolucion': evento.fecha_resolucion.isoformat() if evento.fecha_resolucion else None,
-            'prioridad': evento.prioridad,
-            'reportado_por': evento.reportado_por,
-        }
-        return JsonResponse(data)
-    except EventoTrafico.DoesNotExist:
-        return JsonResponse({'error': 'Evento no encontrado'}, status=404)
+    queryset = EventoRutaAfectada.objects.all()
+    serializer_class = EventoRutaAfectadaSerializer
+    permission_classes = [CanManageRoutes]
+    filterset_class = EventoRutaAfectadaFilter
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['ruta_codigo', 'ruta_nombre', 'sistema_origen']
+    ordering_fields = ['creado_en', 'relevancia']
+    ordering = ['-creado_en']
+
+    def get_queryset(self):
+        """Filtrar por evento si se proporciona"""
+        queryset = super().get_queryset()
+        evento_id = self.request.query_params.get('evento', None)
+        if evento_id is not None:
+            queryset = queryset.filter(evento_id=evento_id)
+        return queryset.select_related('evento')
+
+
+def home(request):
+    """
+    Vista principal que renderiza el home con opciones para gestionar las tablas
+    """
+    return render(request, 'home.html')
 
 
 def health_check(request):
@@ -87,5 +463,6 @@ def health_check(request):
     return JsonResponse({
         'status': 'OK',
         'app': 'microservicios_eventos',
-        'database': 'eventos_trafico'
+        'database': 'eventos_trafico',
+        'timestamp': timezone.now().isoformat()
     })
