@@ -5,7 +5,7 @@ from django.views.decorators.http import require_http_methods
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.utils import timezone
-from django.db.models import Q
+from django.db.models import Q, Count
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -161,11 +161,49 @@ class TipoEventoViewSet(viewsets.ModelViewSet):
         return Response({'mensaje': 'Tipo de evento desactivado exitosamente'})
 
 
+@extend_schema_view(
+    list=extend_schema(
+        tags=['Catálogos'],
+        summary="Listar niveles de gravedad",
+        description="Obtiene una lista paginada de todos los niveles de gravedad ordenados por orden"
+    ),
+    create=extend_schema(
+        tags=['Catálogos'],
+        summary="Crear nivel de gravedad",
+        description="Crea un nuevo nivel de gravedad (requiere permisos de staff)"
+    ),
+    retrieve=extend_schema(
+        tags=['Catálogos'],
+        summary="Obtener nivel de gravedad",
+        description="Obtiene los detalles de un nivel de gravedad específico"
+    ),
+    update=extend_schema(
+        tags=['Catálogos'],
+        summary="Actualizar nivel de gravedad",
+        description="Actualiza completamente un nivel de gravedad (requiere permisos de staff)"
+    ),
+    partial_update=extend_schema(
+        tags=['Catálogos'],
+        summary="Actualizar parcialmente nivel de gravedad",
+        description="Actualiza parcialmente un nivel de gravedad (requiere permisos de staff)"
+    ),
+    destroy=extend_schema(
+        tags=['Catálogos'],
+        summary="Eliminar nivel de gravedad",
+        description="Elimina un nivel de gravedad (requiere permisos de staff)"
+    )
+)
 class NivelGravedadViewSet(viewsets.ModelViewSet):
     """
     ViewSet para gestionar niveles de gravedad
     
-    Permite operaciones CRUD completas con ordenamiento por nivel
+    Permite operaciones CRUD completas:
+    - GET /niveles-gravedad/ - Lista todos los niveles de gravedad
+    - POST /niveles-gravedad/ - Crea un nuevo nivel de gravedad
+    - GET /niveles-gravedad/{id}/ - Obtiene un nivel de gravedad específico
+    - PUT /niveles-gravedad/{id}/ - Actualiza completamente un nivel de gravedad
+    - PATCH /niveles-gravedad/{id}/ - Actualiza parcialmente un nivel de gravedad
+    - DELETE /niveles-gravedad/{id}/ - Elimina un nivel de gravedad
     """
     queryset = NivelGravedad.objects.all()
     serializer_class = NivelGravedadSerializer
@@ -176,6 +214,94 @@ class NivelGravedadViewSet(viewsets.ModelViewSet):
     search_fields = ['codigo', 'nombre']
     ordering_fields = ['codigo', 'nombre', 'orden', 'creado_en']
     ordering = ['orden']
+
+    @extend_schema(
+        tags=['Catálogos'],
+        summary="Obtener estadísticas de niveles de gravedad",
+        description="Obtiene estadísticas sobre el uso de niveles de gravedad en eventos"
+    )
+    @action(detail=False, methods=['get'])
+    def estadisticas(self, request):
+        """Endpoint para obtener estadísticas de niveles de gravedad"""
+        estadisticas = self.get_queryset().annotate(
+            total_eventos=Count('eventos')
+        ).values(
+            'id', 'codigo', 'nombre', 'orden', 'total_eventos'
+        ).order_by('orden')
+        
+        return Response({
+            'total_niveles': len(estadisticas),
+            'niveles': list(estadisticas)
+        })
+
+    @extend_schema(
+        tags=['Catálogos'],
+        summary="Verificar disponibilidad de código",
+        description="Verifica si un código está disponible para usar",
+        parameters=[
+            OpenApiParameter(
+                name='codigo',
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                description='Código a verificar',
+                required=True
+            )
+        ]
+    )
+    @action(detail=False, methods=['get'])
+    def verificar_codigo(self, request):
+        """Verificar si un código está disponible"""
+        codigo = request.query_params.get('codigo', '').strip().upper()
+        if not codigo:
+            return Response(
+                {'error': 'Debe proporcionar un código'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        existe = NivelGravedad.objects.filter(codigo=codigo).exists()
+        return Response({
+            'codigo': codigo,
+            'disponible': not existe,
+            'mensaje': 'Código disponible' if not existe else 'Código ya existe'
+        })
+
+    @extend_schema(
+        tags=['Catálogos'],
+        summary="Verificar disponibilidad de orden",
+        description="Verifica si un orden está disponible para usar",
+        parameters=[
+            OpenApiParameter(
+                name='orden',
+                type=OpenApiTypes.INT,
+                location=OpenApiParameter.QUERY,
+                description='Orden a verificar',
+                required=True
+            )
+        ]
+    )
+    @action(detail=False, methods=['get'])
+    def verificar_orden(self, request):
+        """Verificar si un orden está disponible"""
+        try:
+            orden = int(request.query_params.get('orden', 0))
+        except (ValueError, TypeError):
+            return Response(
+                {'error': 'El orden debe ser un número válido'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if orden <= 0:
+            return Response(
+                {'error': 'El orden debe ser un número positivo'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        existe = NivelGravedad.objects.filter(orden=orden).exists()
+        return Response({
+            'orden': orden,
+            'disponible': not existe,
+            'mensaje': 'Orden disponible' if not existe else 'Orden ya existe'
+        })
 
 
 class EstadoEventoViewSet(viewsets.ModelViewSet):

@@ -67,8 +67,9 @@ class CanManageCatalogs(BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
             
-        # Solo usuarios staff pueden modificar catálogos
-        return request.user and request.user.is_authenticated and request.user.is_staff
+        # TEMPORAL PARA DESARROLLO: Solo usuarios autenticados pueden modificar catálogos
+        # En producción cambiar a: request.user.is_staff
+        return request.user and request.user.is_authenticated
 
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:

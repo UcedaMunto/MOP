@@ -43,14 +43,38 @@ class NivelGravedadSerializer(serializers.ModelSerializer):
 
     def validate_codigo(self, value):
         """Validar que el código no esté vacío y sea único"""
-        if not value.strip():
+        if not value or not value.strip():
             raise serializers.ValidationError("El código no puede estar vacío.")
+        
+        # Verificar unicidad excluyendo el objeto actual en caso de actualización
+        queryset = NivelGravedad.objects.filter(codigo=value.upper().strip())
+        if self.instance:
+            queryset = queryset.exclude(pk=self.instance.pk)
+        
+        if queryset.exists():
+            raise serializers.ValidationError("Ya existe un nivel de gravedad con este código.")
+        
         return value.upper().strip()
+
+    def validate_nombre(self, value):
+        """Validar que el nombre no esté vacío"""
+        if not value or not value.strip():
+            raise serializers.ValidationError("El nombre no puede estar vacío.")
+        return value.strip()
 
     def validate_orden(self, value):
         """Validar que el orden sea positivo"""
-        if value <= 0:
+        if value is None or value <= 0:
             raise serializers.ValidationError("El orden debe ser un número positivo.")
+        
+        # Verificar unicidad del orden excluyendo el objeto actual en caso de actualización
+        queryset = NivelGravedad.objects.filter(orden=value)
+        if self.instance:
+            queryset = queryset.exclude(pk=self.instance.pk)
+        
+        if queryset.exists():
+            raise serializers.ValidationError("Ya existe un nivel de gravedad con este orden.")
+        
         return value
 
 

@@ -1,0 +1,335 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if form_mode == 'create' %}
+        Crear Nivel de Gravedad
+    {% elif form_mode == 'edit' %}
+        Editar Nivel de Gravedad
+    {% else %}
+        Nivel de Gravedad
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">
+                        {% if form_mode == 'create' %}
+                            <i class="fas fa-plus-circle"></i> Crear Nuevo Nivel de Gravedad
+                        {% elif form_mode == 'edit' %}
+                            <i class="fas fa-edit"></i> Editar Nivel de Gravedad
+                        {% else %}
+                            <i class="fas fa-exclamation-triangle"></i> Nivel de Gravedad
+                        {% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" id="nivelGravedadForm" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Campo Código -->
+                        <div class="mb-3">
+                            <label for="id_codigo" class="form-label">
+                                Código <span class="text-danger">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                class="form-control {% if form.codigo.errors %}is-invalid{% endif %}" 
+                                id="id_codigo" 
+                                name="codigo" 
+                                value="{{ form.codigo.value|default:'' }}"
+                                maxlength="16"
+                                required
+                                placeholder="Ej: LEVE, MODERADO, GRAVE"
+                            >
+                            <div class="form-text">
+                                Código único del nivel de gravedad (máximo 16 caracteres)
+                            </div>
+                            {% if form.codigo.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.codigo.errors.0 }}
+                                </div>
+                            {% endif %}
+                            <div id="codigo-availability" class="form-text text-muted"></div>
+                        </div>
+
+                        <!-- Campo Nombre -->
+                        <div class="mb-3">
+                            <label for="id_nombre" class="form-label">
+                                Nombre <span class="text-danger">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                class="form-control {% if form.nombre.errors %}is-invalid{% endif %}" 
+                                id="id_nombre" 
+                                name="nombre" 
+                                value="{{ form.nombre.value|default:'' }}"
+                                maxlength="32"
+                                required
+                                placeholder="Ej: Leve, Moderado, Grave"
+                            >
+                            <div class="form-text">
+                                Nombre descriptivo del nivel de gravedad (máximo 32 caracteres)
+                            </div>
+                            {% if form.nombre.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.nombre.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Campo Orden -->
+                        <div class="mb-3">
+                            <label for="id_orden" class="form-label">
+                                Orden <span class="text-danger">*</span>
+                            </label>
+                            <input 
+                                type="number" 
+                                class="form-control {% if form.orden.errors %}is-invalid{% endif %}" 
+                                id="id_orden" 
+                                name="orden" 
+                                value="{{ form.orden.value|default:'' }}"
+                                min="1"
+                                max="32767"
+                                required
+                                placeholder="Ej: 1, 2, 3..."
+                            >
+                            <div class="form-text">
+                                Orden del nivel (1 = menor gravedad, mayor número = más grave)
+                            </div>
+                            {% if form.orden.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.orden.errors.0 }}
+                                </div>
+                            {% endif %}
+                            <div id="orden-availability" class="form-text text-muted"></div>
+                        </div>
+
+                        <!-- Información adicional para modo edición -->
+                        {% if form_mode == 'edit' and nivel_gravedad %}
+                            <div class="mb-3">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Información del Registro</h6>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <small class="text-muted">
+                                                    <strong>Creado:</strong> {{ nivel_gravedad.creado_en|date:"d/m/Y H:i" }}
+                                                </small>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <small class="text-muted">
+                                                    <strong>Actualizado:</strong> {{ nivel_gravedad.actualizado_en|date:"d/m/Y H:i" }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                        {% if nivel_gravedad.eventos.count > 0 %}
+                                            <div class="mt-2">
+                                                <small class="text-info">
+                                                    <i class="fas fa-info-circle"></i>
+                                                    Este nivel está siendo usado en {{ nivel_gravedad.eventos.count }} evento{{ nivel_gravedad.eventos.count|pluralize }}
+                                                </small>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- Botones -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'microservicios_eventos:niveles_gravedad_list' %}" 
+                               class="btn btn-secondary me-md-2">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                            
+                            {% if form_mode == 'create' %}
+                                <button type="submit" class="btn btn-primary" id="submitBtn">
+                                    <i class="fas fa-plus"></i> Crear Nivel
+                                </button>
+                            {% elif form_mode == 'edit' %}
+                                <button type="submit" class="btn btn-primary" id="submitBtn">
+                                    <i class="fas fa-save"></i> Guardar Cambios
+                                </button>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmación para edición con eventos asociados -->
+{% if form_mode == 'edit' and nivel_gravedad.eventos.count > 0 %}
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">Confirmar Cambios</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Este nivel de gravedad está siendo usado en <strong>{{ nivel_gravedad.eventos.count }}</strong> evento{{ nivel_gravedad.eventos.count|pluralize }}.
+                </div>
+                <p>Los cambios que realices afectarán a todos los eventos que usan este nivel de gravedad. ¿Estás seguro de que deseas continuar?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-warning" id="confirmSubmit">Confirmar Cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('nivelGravedadForm');
+    const codigoInput = document.getElementById('id_codigo');
+    const ordenInput = document.getElementById('id_orden');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    // Validación en tiempo real del código
+    let codigoTimeout;
+    codigoInput.addEventListener('input', function() {
+        clearTimeout(codigoTimeout);
+        const codigo = this.value.trim().toUpperCase();
+        const availabilityDiv = document.getElementById('codigo-availability');
+        
+        if (codigo.length >= 2) {
+            codigoTimeout = setTimeout(function() {
+                fetch(`/api/niveles-gravedad/verificar_codigo/?codigo=${encodeURIComponent(codigo)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.disponible) {
+                            availabilityDiv.innerHTML = '<i class="fas fa-check text-success"></i> Código disponible';
+                            availabilityDiv.className = 'form-text text-success';
+                        } else {
+                            {% if form_mode == 'edit' %}
+                                // En modo edición, verificar si es el código actual
+                                if (codigo === '{{ nivel_gravedad.codigo|default:"" }}') {
+                                    availabilityDiv.innerHTML = '<i class="fas fa-info-circle text-info"></i> Código actual';
+                                    availabilityDiv.className = 'form-text text-info';
+                                } else {
+                                    availabilityDiv.innerHTML = '<i class="fas fa-times text-danger"></i> Código ya existe';
+                                    availabilityDiv.className = 'form-text text-danger';
+                                }
+                            {% else %}
+                                availabilityDiv.innerHTML = '<i class="fas fa-times text-danger"></i> Código ya existe';
+                                availabilityDiv.className = 'form-text text-danger';
+                            {% endif %}
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error verificando código:', error);
+                        availabilityDiv.innerHTML = '';
+                    });
+            }, 500);
+        } else {
+            availabilityDiv.innerHTML = '';
+        }
+    });
+    
+    // Validación en tiempo real del orden
+    let ordenTimeout;
+    ordenInput.addEventListener('input', function() {
+        clearTimeout(ordenTimeout);
+        const orden = parseInt(this.value);
+        const availabilityDiv = document.getElementById('orden-availability');
+        
+        if (!isNaN(orden) && orden > 0) {
+            ordenTimeout = setTimeout(function() {
+                fetch(`/api/niveles-gravedad/verificar_orden/?orden=${orden}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.disponible) {
+                            availabilityDiv.innerHTML = '<i class="fas fa-check text-success"></i> Orden disponible';
+                            availabilityDiv.className = 'form-text text-success';
+                        } else {
+                            {% if form_mode == 'edit' %}
+                                // En modo edición, verificar si es el orden actual
+                                if (orden === {{ nivel_gravedad.orden|default:0 }}) {
+                                    availabilityDiv.innerHTML = '<i class="fas fa-info-circle text-info"></i> Orden actual';
+                                    availabilityDiv.className = 'form-text text-info';
+                                } else {
+                                    availabilityDiv.innerHTML = '<i class="fas fa-times text-danger"></i> Orden ya existe';
+                                    availabilityDiv.className = 'form-text text-danger';
+                                }
+                            {% else %}
+                                availabilityDiv.innerHTML = '<i class="fas fa-times text-danger"></i> Orden ya existe';
+                                availabilityDiv.className = 'form-text text-danger';
+                            {% endif %}
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error verificando orden:', error);
+                        availabilityDiv.innerHTML = '';
+                    });
+            }, 500);
+        } else {
+            availabilityDiv.innerHTML = '';
+        }
+    });
+    
+    // Manejo del formulario con confirmación
+    {% if form_mode == 'edit' and nivel_gravedad.eventos.count > 0 %}
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+            modal.show();
+        });
+        
+        document.getElementById('confirmSubmit').addEventListener('click', function() {
+            form.submit();
+        });
+    {% endif %}
+    
+    // Convertir código a mayúsculas automáticamente
+    codigoInput.addEventListener('blur', function() {
+        this.value = this.value.toUpperCase().trim();
+    });
+    
+    // Validación del formulario
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        // Validar código
+        if (!codigoInput.value.trim()) {
+            codigoInput.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            codigoInput.classList.remove('is-invalid');
+        }
+        
+        // Validar orden
+        const orden = parseInt(ordenInput.value);
+        if (isNaN(orden) || orden <= 0) {
+            ordenInput.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            ordenInput.classList.remove('is-invalid');
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}
