@@ -1,0 +1,18 @@
+# PostgreSQL data directory - contains database files
+POSTGRES/data/
+
+# Docker volumes and runtime data
+*.log
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Environment variables (if sensitive)
+# .env

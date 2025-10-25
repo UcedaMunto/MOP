@@ -1,0 +1,35 @@
+
+services:
+  postgres:
+    build: ./POSTGRES
+    container_name: postgres_17
+    env_file:
+      - ./POSTGRES/.env
+    # Expone 5432 a todas las IPs externas del host
+    ports:
+      - "5433:5432"
+    # Persistencia en volúmenes (bind mounts a tu carpeta)
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./POSTGRES/conf:/etc/postgresql/custom
+      - ./POSTGRES/init:/docker-entrypoint-initdb.d
+    networks:
+      mop_net:
+        ipv4_address: 172.28.0.10
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB -h 127.0.0.1 -p 5432"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+networks:
+  mop_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/24
+          gateway: 172.28.0.1
+
+volumes:
+  postgres_data:
