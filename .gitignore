@@ -15,4 +15,4 @@ POSTGRES/data/
 Thumbs.db
 
 # Environment variables (if sensitive)
-# .env
+.env

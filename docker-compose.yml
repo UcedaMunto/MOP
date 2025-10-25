@@ -23,6 +23,30 @@ services:
       timeout: 5s
       retries: 10
 
+  redis:
+    build: ./REDIS
+    container_name: redis_7
+    env_file:
+      - ./REDIS/.env
+    # Expone 6379 a todas las IPs externas del host
+    ports:
+      - "6379:6379"
+    # Persistencia en volúmenes para Redis
+    volumes:
+      - redis_data:/var/lib/redis
+      - ./REDIS/conf:/usr/local/etc/redis/custom
+    networks:
+      mop_net:
+        ipv4_address: 172.28.0.11
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli --raw incr ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - postgres
+
 networks:
   mop_net:
     driver: bridge
@@ -33,3 +57,4 @@ networks:
 
 volumes:
   postgres_data:
+  redis_data:
