@@ -246,15 +246,19 @@
             labels: {'nombre': 'Nombre', 'descripcion': 'Descripción', 'codigo': 'Código'}
         },
         'eventos': {
-            fields: ['titulo', 'descripcion', 'fecha_inicio', 'fecha_fin', 'tipo_evento', 'nivel_gravedad', 'estado'],
+            fields: ['titulo', 'descripcion', 'tipo', 'gravedad', 'estado', 'latitud', 'longitud', 'radio_metros', 'fecha_ocurrencia', 'fecha_reporte', 'expira_en'],
             labels: {
                 'titulo': 'Título',
-                'descripcion': 'Descripción', 
-                'fecha_inicio': 'Fecha Inicio',
-                'fecha_fin': 'Fecha Fin',
-                'tipo_evento': 'Tipo de Evento',
-                'nivel_gravedad': 'Nivel de Gravedad',
-                'estado': 'Estado'
+                'descripcion': 'Descripción',
+                'tipo': 'Tipo de Evento',
+                'gravedad': 'Nivel de Gravedad',
+                'estado': 'Estado',
+                'latitud': 'Latitud',
+                'longitud': 'Longitud',
+                'radio_metros': 'Radio en Metros',
+                'fecha_ocurrencia': 'Fecha de Ocurrencia',
+                'fecha_reporte': 'Fecha de Reporte',
+                'expira_en': 'Fecha de Expiración'
             }
         },
         'rutas-afectadas': {
@@ -327,9 +331,39 @@
             html += `<tr><td>${item.id}</td>`;
             config.fields.forEach(field => {
                 let value = item[field] || '-';
-                if (typeof value === 'object' && value !== null) {
-                    value = value.nombre || value.titulo || JSON.stringify(value);
+                
+                // Formateo especial para eventos
+                if (currentTable === 'eventos') {
+                    if (field === 'fecha_ocurrencia' || field === 'fecha_reporte' || field === 'expira_en') {
+                        if (value && value !== '-') {
+                            value = new Date(value).toLocaleString('es-ES', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+                        }
+                    } else if (field === 'tipo' || field === 'gravedad' || field === 'estado') {
+                        if (typeof value === 'object' && value !== null) {
+                            value = `${value.nombre} (${value.codigo || value.id})`;
+                        }
+                    } else if (field === 'latitud' || field === 'longitud') {
+                        if (value && value !== '-') {
+                            value = parseFloat(value).toFixed(6);
+                        }
+                    } else if (field === 'radio_metros') {
+                        if (value && value !== '-') {
+                            value = `${value} m`;
+                        }
+                    }
+                } else {
+                    // Formateo para otras tablas
+                    if (typeof value === 'object' && value !== null) {
+                        value = value.nombre || value.titulo || JSON.stringify(value);
+                    }
                 }
+                
                 html += `<td>${value}</td>`;
             });
             html += `
@@ -382,6 +416,192 @@
     function showForm(title, data = null) {
         document.getElementById('formModalTitle').textContent = title;
         
+        // Si estamos creando/editando eventos, necesitamos cargar los catálogos
+        if (currentTable === 'eventos') {
+            loadEventFormWithCatalogs(title, data);
+        } else {
+            generateStandardForm(title, data);
+        }
+    }
+    
+    function loadEventFormWithCatalogs(title, data = null) {
+        // Mostrar indicador de carga
+        document.getElementById('formContent').innerHTML = `
+            <div class="text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando formulario...</span>
+                </div>
+                <p class="mt-2">Cargando opciones...</p>
+            </div>
+        `;
+        new bootstrap.Modal(document.getElementById('formModal')).show();
+        
+        // Cargar los catálogos en paralelo
+        const catalogPromises = [
+            $.ajax({
+                url: API_BASE + endpoints['tipos-evento'],
+                method: 'GET',
+                headers: getAuthHeaders()
+            }),
+            $.ajax({
+                url: API_BASE + endpoints['niveles-gravedad'],
+                method: 'GET',
+                headers: getAuthHeaders()
+            }),
+            $.ajax({
+                url: API_BASE + endpoints['estados-evento'],
+                method: 'GET',
+                headers: getAuthHeaders()
+            })
+        ];
+        
+        Promise.all(catalogPromises)
+            .then(responses => {
+                const [tiposEvento, nivelesGravedad, estadosEvento] = responses;
+                generateEventForm(title, data, {
+                    tiposEvento: tiposEvento.results || tiposEvento,
+                    nivelesGravedad: nivelesGravedad.results || nivelesGravedad,
+                    estadosEvento: estadosEvento.results || estadosEvento
+                });
+            })
+            .catch(error => {
+                if (error.status === 401) {
+                    handleAuthError();
+                    return;
+                }
+                document.getElementById('formContent').innerHTML = `
+                    <div class="alert alert-danger">
+                        Error al cargar las opciones del formulario: ${error.responseText || error.statusText}
+                    </div>
+                `;
+            });
+    }
+    
+    function generateEventForm(title, data, catalogs) {
+        const config = fieldConfigs[currentTable];
+        let html = '<form id="itemForm">';
+        
+        config.fields.forEach(field => {
+            const value = data ? (data[field] || '') : '';
+            const label = config.labels[field];
+            
+            if (field.includes('fecha')) {
+                const isRequired = (field === 'fecha_ocurrencia' || field === 'fecha_reporte');
+                html += `
+                    <div class="mb-3">
+                        <label for="${field}" class="form-label">${label}${isRequired ? ' <span class="text-danger">*</span>' : ''}</label>
+                        <input type="datetime-local" class="form-control" id="${field}" name="${field}" 
+                               value="${value ? new Date(value).toISOString().slice(0, 16) : ''}"
+                               ${isRequired ? 'required' : ''}>
+                    </div>
+                `;
+            } else if (field === 'tipo') {
+                html += `
+                    <div class="mb-3">
+                        <label for="${field}" class="form-label">${label} <span class="text-danger">*</span></label>
+                        <select class="form-control" id="${field}" name="${field}" required>
+                            <option value="">Seleccionar tipo de evento...</option>
+                `;
+                catalogs.tiposEvento.forEach(tipo => {
+                    const selected = (data && data.tipo && data.tipo.id === tipo.id) ? 'selected' : '';
+                    html += `<option value="${tipo.id}" ${selected}>${tipo.nombre} (${tipo.codigo})</option>`;
+                });
+                html += `
+                        </select>
+                    </div>
+                `;
+            } else if (field === 'gravedad') {
+                html += `
+                    <div class="mb-3">
+                        <label for="${field}" class="form-label">${label} <span class="text-danger">*</span></label>
+                        <select class="form-control" id="${field}" name="${field}" required>
+                            <option value="">Seleccionar nivel de gravedad...</option>
+                `;
+                // Ordenar por el campo orden
+                const sortedNiveles = catalogs.nivelesGravedad.sort((a, b) => a.orden - b.orden);
+                sortedNiveles.forEach(nivel => {
+                    const selected = (data && data.gravedad && data.gravedad.id === nivel.id) ? 'selected' : '';
+                    html += `<option value="${nivel.id}" ${selected}>${nivel.nombre} (${nivel.codigo})</option>`;
+                });
+                html += `
+                        </select>
+                    </div>
+                `;
+            } else if (field === 'estado') {
+                html += `
+                    <div class="mb-3">
+                        <label for="${field}" class="form-label">${label} <span class="text-danger">*</span></label>
+                        <select class="form-control" id="${field}" name="${field}" required>
+                            <option value="">Seleccionar estado...</option>
+                `;
+                catalogs.estadosEvento.forEach(estado => {
+                    const selected = (data && data.estado && data.estado.id === estado.id) ? 'selected' : '';
+                    html += `<option value="${estado.id}" ${selected}>${estado.nombre} (${estado.codigo})</option>`;
+                });
+                html += `
+                        </select>
+                    </div>
+                `;
+            } else if (field === 'descripcion') {
+                html += `
+                    <div class="mb-3">
+                        <label for="${field}" class="form-label">${label} <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="${field}" name="${field}" rows="3" required>${value}</textarea>
+                    </div>
+                `;
+            } else if (field === 'latitud') {
+                html += `
+                    <div class="mb-3">
+                        <label for="${field}" class="form-label">${label} <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="${field}" name="${field}" 
+                               value="${value}" step="0.000001" min="-90" max="90" 
+                               placeholder="Ej: -12.046374" required>
+                        <div class="form-text">Latitud válida entre -90 y 90 grados</div>
+                    </div>
+                `;
+            } else if (field === 'longitud') {
+                html += `
+                    <div class="mb-3">
+                        <label for="${field}" class="form-label">${label} <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="${field}" name="${field}" 
+                               value="${value}" step="0.000001" min="-180" max="180" 
+                               placeholder="Ej: -77.042793" required>
+                        <div class="form-text">Longitud válida entre -180 y 180 grados</div>
+                    </div>
+                `;
+            } else if (field === 'radio_metros') {
+                html += `
+                    <div class="mb-3">
+                        <label for="${field}" class="form-label">${label} <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="${field}" name="${field}" 
+                               value="${value}" min="1" max="50000" 
+                               placeholder="Ej: 500" required>
+                        <div class="form-text">Radio de afectación en metros (1-50000)</div>
+                    </div>
+                `;
+            } else {
+                // Campos de texto normales (titulo)
+                const isRequired = (field === 'titulo');
+                html += `
+                    <div class="mb-3">
+                        <label for="${field}" class="form-label">${label}${isRequired ? ' <span class="text-danger">*</span>' : ''}</label>
+                        <input type="text" class="form-control" id="${field}" name="${field}" value="${value}"
+                               ${isRequired ? 'required' : ''}>
+                    </div>
+                `;
+            }
+        });
+        
+        html += '</form>';
+        
+        if (data) {
+            html += `<input type="hidden" id="itemId" value="${data.id}">`;
+        }
+        
+        document.getElementById('formContent').innerHTML = html;
+    }
+    
+    function generateStandardForm(title, data = null) {
         const config = fieldConfigs[currentTable];
         let html = '<form id="itemForm">';
         
@@ -459,6 +679,23 @@
                 } else {
                     data[key] = value.trim();
                 }
+            } else if (currentTable === 'eventos') {
+                // Procesar campos específicos para eventos
+                if (key === 'tipo' || key === 'gravedad' || key === 'estado') {
+                    // Convertir a entero para las llaves foráneas
+                    data[key] = value ? parseInt(value) : null;
+                } else if (key === 'fecha_ocurrencia' || key === 'fecha_reporte' || key === 'expira_en') {
+                    // Convertir fechas al formato correcto
+                    data[key] = value ? new Date(value).toISOString() : null;
+                } else if (key === 'latitud' || key === 'longitud') {
+                    // Convertir coordenadas a decimal
+                    data[key] = value ? parseFloat(value) : null;
+                } else if (key === 'radio_metros') {
+                    // Convertir radio a entero
+                    data[key] = value ? parseInt(value) : null;
+                } else {
+                    data[key] = value;
+                }
             } else {
                 data[key] = value;
             }
@@ -469,6 +706,41 @@
             if (!data.codigo || !data.nombre || !data.orden || data.orden <= 0) {
                 alert('Por favor, complete todos los campos requeridos correctamente.');
                 return;
+            }
+        }
+        
+        // Validación específica para eventos
+        if (currentTable === 'eventos') {
+            if (!data.titulo || !data.descripcion || !data.tipo || !data.gravedad || !data.estado || 
+                !data.latitud || !data.longitud || !data.radio_metros) {
+                alert('Por favor, complete todos los campos requeridos: Título, Descripción, Tipo, Gravedad, Estado, Latitud, Longitud y Radio en Metros.');
+                return;
+            }
+            
+            // Validar rangos de coordenadas
+            if (data.latitud < -90 || data.latitud > 90) {
+                alert('La latitud debe estar entre -90 y 90 grados.');
+                return;
+            }
+            
+            if (data.longitud < -180 || data.longitud > 180) {
+                alert('La longitud debe estar entre -180 y 180 grados.');
+                return;
+            }
+            
+            if (data.radio_metros <= 0 || data.radio_metros > 50000) {
+                alert('El radio debe estar entre 1 y 50000 metros.');
+                return;
+            }
+            
+            // Validar fechas si están presentes
+            if (data.fecha_ocurrencia && data.expira_en) {
+                const fechaOcurrencia = new Date(data.fecha_ocurrencia);
+                const fechaExpiracion = new Date(data.expira_en);
+                if (fechaExpiracion <= fechaOcurrencia) {
+                    alert('La fecha de expiración debe ser posterior a la fecha de ocurrencia.');
+                    return;
+                }
             }
         }
         
@@ -486,6 +758,11 @@
             success: function(response) {
                 bootstrap.Modal.getInstance(document.getElementById('formModal')).hide();
                 alert('Elemento guardado exitosamente');
+                
+                // Si hay una lista abierta, recargarla
+                if (document.getElementById('listModal').classList.contains('show')) {
+                    listItems();
+                }
             },
             error: function(xhr, status, error) {
                 if (xhr.status === 401) {
@@ -494,7 +771,19 @@
                 }
                 let errorMsg = 'Error al guardar el elemento';
                 if (xhr.responseJSON) {
-                    errorMsg += ': ' + JSON.stringify(xhr.responseJSON);
+                    if (typeof xhr.responseJSON === 'object') {
+                        const errors = [];
+                        for (const [field, messages] of Object.entries(xhr.responseJSON)) {
+                            if (Array.isArray(messages)) {
+                                errors.push(`${field}: ${messages.join(', ')}`);
+                            } else {
+                                errors.push(`${field}: ${messages}`);
+                            }
+                        }
+                        errorMsg += ':\n' + errors.join('\n');
+                    } else {
+                        errorMsg += ': ' + xhr.responseJSON;
+                    }
                 }
                 alert(errorMsg);
             }
