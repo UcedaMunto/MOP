@@ -344,9 +344,26 @@
                                 minute: '2-digit'
                             });
                         }
-                    } else if (field === 'tipo' || field === 'gravedad' || field === 'estado') {
-                        if (typeof value === 'object' && value !== null) {
-                            value = `${value.nombre} (${value.codigo || value.id})`;
+                    } else if (field === 'tipo') {
+                        // Usar tipo_info para mostrar la información completa
+                        if (item.tipo_info) {
+                            value = `${item.tipo_info.nombre} (${item.tipo_info.codigo})`;
+                        } else {
+                            value = value || '-';
+                        }
+                    } else if (field === 'gravedad') {
+                        // Usar gravedad_info para mostrar la información completa
+                        if (item.gravedad_info) {
+                            value = `${item.gravedad_info.nombre} (${item.gravedad_info.codigo})`;
+                        } else {
+                            value = value || '-';
+                        }
+                    } else if (field === 'estado') {
+                        // Usar estado_info para mostrar la información completa
+                        if (item.estado_info) {
+                            value = `${item.estado_info.nombre} (${item.estado_info.codigo})`;
+                        } else {
+                            value = value || '-';
                         }
                     } else if (field === 'latitud' || field === 'longitud') {
                         if (value && value !== '-') {
@@ -503,7 +520,12 @@
                             <option value="">Seleccionar tipo de evento...</option>
                 `;
                 catalogs.tiposEvento.forEach(tipo => {
-                    const selected = (data && data.tipo && data.tipo.id === tipo.id) ? 'selected' : '';
+                    let selected = '';
+                    if (data) {
+                        // Verificar si data.tipo es un ID o un objeto
+                        const tipoId = typeof data.tipo === 'object' ? data.tipo : data.tipo;
+                        selected = (tipoId === tipo.id) ? 'selected' : '';
+                    }
                     html += `<option value="${tipo.id}" ${selected}>${tipo.nombre} (${tipo.codigo})</option>`;
                 });
                 html += `
@@ -520,7 +542,12 @@
                 // Ordenar por el campo orden
                 const sortedNiveles = catalogs.nivelesGravedad.sort((a, b) => a.orden - b.orden);
                 sortedNiveles.forEach(nivel => {
-                    const selected = (data && data.gravedad && data.gravedad.id === nivel.id) ? 'selected' : '';
+                    let selected = '';
+                    if (data) {
+                        // Verificar si data.gravedad es un ID o un objeto
+                        const gravedadId = typeof data.gravedad === 'object' ? data.gravedad : data.gravedad;
+                        selected = (gravedadId === nivel.id) ? 'selected' : '';
+                    }
                     html += `<option value="${nivel.id}" ${selected}>${nivel.nombre} (${nivel.codigo})</option>`;
                 });
                 html += `
@@ -535,7 +562,12 @@
                             <option value="">Seleccionar estado...</option>
                 `;
                 catalogs.estadosEvento.forEach(estado => {
-                    const selected = (data && data.estado && data.estado.id === estado.id) ? 'selected' : '';
+                    let selected = '';
+                    if (data) {
+                        // Verificar si data.estado es un ID o un objeto
+                        const estadoId = typeof data.estado === 'object' ? data.estado : data.estado;
+                        selected = (estadoId === estado.id) ? 'selected' : '';
+                    }
                     html += `<option value="${estado.id}" ${selected}>${estado.nombre} (${estado.codigo})</option>`;
                 });
                 html += `
