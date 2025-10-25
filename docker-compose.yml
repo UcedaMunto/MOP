@@ -40,12 +40,33 @@ services:
         ipv4_address: 172.28.0.11
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli --raw incr ping"]
+      test: ["CMD-SHELL", "redis-cli -a $$REDIS_PASSWORD ping"]
       interval: 10s
       timeout: 5s
       retries: 5
     depends_on:
       - postgres
+
+  #central:
+  #  container_name: central
+  #  environment:
+  #    TZ: America/El_Salvador
+  #    LANG: en_US.UTF-8
+  #  extra_hosts:
+  #    - "host.docker.internal:host-gateway"
+  #  volumes:
+  #    - static:/static
+  #    - ./DJANGO_UCEDA:/app
+  #  env_file:
+  #    - .env
+  #  build:
+  #    context: ./DJANGO_UCEDA
+  #  ports:
+  #    - "81:8000"
+  #  networks:
+  #    mop_net:
+  #      ipv4_address: 172.28.0.12
+
 
 networks:
   mop_net:
@@ -58,3 +79,4 @@ networks:
 volumes:
   postgres_data:
   redis_data:
+  static:
