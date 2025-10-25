@@ -1,0 +1,363 @@
+@startuml
+' ==============================================
+' ERD: Tráfico — Relación VIAJE (MS Transporte) ↔ EVENTO (MS Eventos) por referencia externa
+' ==============================================
+hide circle
+skinparam linetype ortho
+skinparam class {
+  BackgroundColor White
+  BorderColor #888
+}
+skinparam ArrowColor #555
+
+' ==========
+' Seguridad / Usuarios (se mantiene, MS Auth)
+' ==========
+entity "usuario" as usuario {
+  * id : BIGSERIAL <<PK>>
+  --
+  correo : CITEXT <<UQ>>
+  contrasena_hash : TEXT
+  nombre_mostrar : VARCHAR(80)
+  rol : VARCHAR(20)            ' USUARIO, ADMINISTRADOR
+  activo : BOOLEAN
+  creado_en : TIMESTAMPTZ
+  actualizado_en : TIMESTAMPTZ
+  ultimo_login : TIMESTAMPTZ
+}
+
+entity "sesion_autenticacion" as sesion_autenticacion {
+  * id : BIGSERIAL <<PK>>
+  --
+  usuario_id : BIGINT <<FK usuario.id>>
+  token_refresco_hash : TEXT <<UQ>>
+  agente_usuario : TEXT
+  direccion_ip : INET
+  expira_en : TIMESTAMPTZ
+  creado_en : TIMESTAMPTZ
+  revocado_en : TIMESTAMPTZ
+}
+
+' ==========
+' Catálogos de eventos (MS Eventos)
+' ==========
+entity "tipo_evento" as tipo_evento {
+  * id : SMALLINT <<PK>>
+  --
+  codigo : VARCHAR(32) <<UQ>>
+  nombre : VARCHAR(64)
+  descripcion : TEXT
+  activo : BOOLEAN
+  creado_en : TIMESTAMPTZ
+  actualizado_en : TIMESTAMPTZ
+}
+
+entity "nivel_gravedad" as nivel_gravedad {
+  * id : SMALLINT <<PK>>
+  --
+  codigo : VARCHAR(16) <<UQ>>
+  nombre : VARCHAR(32)
+  orden : SMALLINT
+  creado_en : TIMESTAMPTZ
+  actualizado_en : TIMESTAMPTZ
+}
+
+entity "estado_evento" as estado_evento {
+  * id : SMALLINT <<PK>>
+  --
+  codigo : VARCHAR(16) <<UQ>>
+  nombre : VARCHAR(32)
+  creado_en : TIMESTAMPTZ
+  actualizado_en : TIMESTAMPTZ
+}
+
+' ==========
+' Operadores / Flota (MS Transporte)
+' ==========
+entity "empresa_transporte" as empresa_transporte {
+  * id : BIGSERIAL <<PK>>
+  --
+  nombre : VARCHAR(120)
+  codigo : VARCHAR(32) <<UQ>>
+  contacto : VARCHAR(120)
+  telefono : VARCHAR(32)
+  activo : BOOLEAN
+  creado_en : TIMESTAMPTZ
+  actualizado_en : TIMESTAMPTZ
+}
+
+entity "piloto" as piloto {
+  * id : BIGSERIAL <<PK>>
+  --
+  empresa_id : BIGINT <<FK empresa_transporte.id>>
+  nombre : VARCHAR(120)
+  documento : VARCHAR(32)
+  licencia_numero : VARCHAR(32)
+  licencia_categoria : VARCHAR(16)
+  telefono : VARCHAR(32)
+  activo : BOOLEAN
+  creado_en : TIMESTAMPTZ
+  actualizado_en : TIMESTAMPTZ
+}
+
+entity "autobus" as autobus {
+  * id : BIGSERIAL <<PK>>
+  --
+  empresa_id : BIGINT <<FK empresa_transporte.id>>
+  codigo : VARCHAR(32) <<UQ>>
+  placa : VARCHAR(16) <<UQ>>
+  capacidad : INTEGER
+  activo : BOOLEAN
+  creado_en : TIMESTAMPTZ
+  actualizado_en : TIMESTAMPTZ
+}
+
+' ==========
+' Rutas y paradas (MS Transporte; podrían vivir en otra BD)
+' ==========
+entity "ruta" as ruta {
+  * id : BIGSERIAL <<PK>>
+  --
+  empresa_id : BIGINT <<FK empresa_transporte.id>>
+  codigo : VARCHAR(32) <<UQ>>
+  nombre : VARCHAR(120)
+  descripcion : TEXT
+  activo : BOOLEAN
+  -- geom_linea : GEOGRAPHY(LINESTRING,4326)
+  creado_en : TIMESTAMPTZ
+  actualizado_en : TIMESTAMPTZ
+}
+
+entity "ruta_geopunto" as ruta_geopunto {
+  * id : BIGSERIAL <<PK>>
+  --
+  ruta_id : BIGINT <<FK ruta.id>>
+  orden : INTEGER
+  latitud : DECIMAL(9,6)
+  longitud : DECIMAL(9,6)
+  -- geom : GEOGRAPHY(POINT,4326)
+}
+
+entity "parada" as parada {
+  * id : BIGSERIAL <<PK>>
+  --
+  ruta_id : BIGINT <<FK ruta.id>>
+  nombre : VARCHAR(120)
+  orden : INTEGER
+  sentido : VARCHAR(16)       ' IDA / VUELTA
+  latitud : DECIMAL(9,6)
+  longitud : DECIMAL(9,6)
+  -- geom : GEOGRAPHY(POINT,4326)
+  activo : BOOLEAN
+  creado_en : TIMESTAMPTZ
+  actualizado_en : TIMESTAMPTZ
+}
+
+' ==========
+' Asignación diaria (MS Transporte)
+' ==========
+entity "asignacion_autobus_ruta" as asignacion_autobus_ruta {
+  * id : BIGSERIAL <<PK>>
+  --
+  autobus_id : BIGINT <<FK autobus.id>>
+  ruta_id : BIGINT <<FK ruta.id>>
+  piloto_id : BIGINT <<FK piloto.id>>
+  fecha : DATE
+  hora_inicio : TIME
+  hora_fin : TIME
+  estado : VARCHAR(16)         ' PROGRAMADA, EN_CURSO, FINALIZADA, CANCELADA
+  creado_en : TIMESTAMPTZ
+  actualizado_en : TIMESTAMPTZ
+  <<UQ(autobus_id, fecha, hora_inicio)>>
+}
+
+' ==========
+' Viaje (histórico por asignación) — MS Transporte
+' ==========
+entity "viaje_autobus" as viaje_autobus {
+  * id : BIGSERIAL <<PK>>
+  --
+  asignacion_id : BIGINT <<FK asignacion_autobus_ruta.id>>
+  autobus_id : BIGINT <<FK autobus.id>>
+  ruta_id : BIGINT <<FK ruta.id>>
+  piloto_id : BIGINT <<FK piloto.id>>
+  numero_viaje : INTEGER
+  estado : VARCHAR(16)          ' EN_CURSO, FINALIZADO, CANCELADO
+  inicio_en : TIMESTAMPTZ
+  fin_en : TIMESTAMPTZ
+  parada_inicio_id : BIGINT <<FK parada.id>>   ' opcional
+  parada_fin_id : BIGINT <<FK parada.id>>      ' opcional
+  distancia_km : NUMERIC(8,3)
+  duracion_min : INTEGER
+  velocidad_media_kmh : NUMERIC(6,2)
+  creado_en : TIMESTAMPTZ
+  actualizado_en : TIMESTAMPTZ
+  <<UQ(asignacion_id, numero_viaje)>>
+}
+
+' ==========
+' Posición — ligada al viaje (MS Transporte)
+' ==========
+entity "posicion_autobus" as posicion_autobus {
+  * id : BIGSERIAL <<PK>>
+  --
+  viaje_id : BIGINT <<FK viaje_autobus.id>>
+  autobus_id : BIGINT <<FK autobus.id>>
+  latitud : DECIMAL(9,6)
+  longitud : DECIMAL(9,6)
+  -- geom : GEOGRAPHY(POINT,4326)
+  velocidad_kmh : NUMERIC(6,2)
+  rumbo_grados : NUMERIC(5,1)
+  precision_m : NUMERIC(6,2)
+  fuente : VARCHAR(24)           ' GPS, GSM, APP
+  capturado_en : TIMESTAMPTZ
+  recibido_en : TIMESTAMPTZ
+  creado_en : TIMESTAMPTZ
+}
+
+' ==========
+' Eventos — MS Eventos (sin FKs al dominio Transporte)
+' ==========
+entity "evento_trafico" as evento_trafico {
+  * id : BIGSERIAL <<PK>>
+  --
+  titulo : VARCHAR(140)
+  descripcion : TEXT
+  tipo_id : SMALLINT <<FK tipo_evento.id>>
+  gravedad_id : SMALLINT <<FK nivel_gravedad.id>>
+  estado_id : SMALLINT <<FK estado_evento.id>>
+  latitud : DECIMAL(9,6)
+  longitud : DECIMAL(9,6)
+  -- geom : GEOGRAPHY(POINT,4326)
+  radio_metros : INTEGER
+  fecha_ocurrencia : TIMESTAMPTZ
+  fecha_reporte : TIMESTAMPTZ
+  expira_en : TIMESTAMPTZ
+
+  ' ====== Referencias externas (microservicios) ======
+  viaje_id_externo : VARCHAR(64)     ' ID del viaje en MS Transporte (nullable)
+  viaje_sistema_origen : VARCHAR(32) ' p.ej. "transporte-ms"
+  vehiculo_id_externo : VARCHAR(64)  ' ID del bus en MS Transporte (nullable)
+  conductor_id_externo : VARCHAR(64) ' ID del piloto en MS Transporte (nullable)
+  correlacion_id : UUID              ' tracing entre servicios (nullable)
+
+  creado_por : BIGINT <<FK usuario.id>>
+  actualizado_por : BIGINT <<FK usuario.id>>
+  creado_en : TIMESTAMPTZ
+  actualizado_en : TIMESTAMPTZ
+  eliminado_en : TIMESTAMPTZ
+}
+
+' Mapeo de rutas afectadas (IDs EXTERNOS, sin FK porque viven en otro MS/BD)
+entity "evento_ruta_afectada" as evento_ruta_afectada {
+  * id : BIGSERIAL <<PK>>
+  --
+  evento_id : BIGINT <<FK evento_trafico.id>>
+  sistema_origen : VARCHAR(32)        ' p.ej.: "rutas-ms", "SIG"
+  ruta_id_externo : VARCHAR(64)       ' UUID/text del otro servicio
+  ruta_codigo : VARCHAR(32)           ' snapshot opcional
+  ruta_nombre : VARCHAR(120)          ' snapshot opcional
+  relevancia : VARCHAR(16)            ' PRINCIPAL, SECUNDARIA
+  creado_en : TIMESTAMPTZ
+  actualizado_en : TIMESTAMPTZ
+}
+
+' ==========
+' Clientes, suscripciones y notificaciones (MS Notificaciones)
+' ==========
+entity "cliente_externo" as cliente_externo {
+  * id : BIGSERIAL <<PK>>
+  --
+  nombre : VARCHAR(120)
+  correo : CITEXT
+  telefono : VARCHAR(32)
+  canal_preferido : VARCHAR(16)    ' EMAIL, SMS, PUSH
+  token_push : TEXT
+  activo : BOOLEAN
+  creado_en : TIMESTAMPTZ
+  actualizado_en : TIMESTAMPTZ
+}
+
+entity "suscripcion_alerta" as suscripcion_alerta {
+  * id : BIGSERIAL <<PK>>
+  --
+  cliente_id : BIGINT <<FK cliente_externo.id>>
+  tipo_objetivo : VARCHAR(12)      ' BUS, PARADA, RUTA
+  objetivo_id : BIGINT             ' id local cuando aplique
+  objetivo_externo : VARCHAR(64)   ' p/ RUTA o BUS en otro MS
+  umbral_metros : INTEGER
+  ventana_minutos : INTEGER
+  activo : BOOLEAN
+  creado_en : TIMESTAMPTZ
+  actualizado_en : TIMESTAMPTZ
+}
+
+entity "notificacion" as notificacion {
+  * id : BIGSERIAL <<PK>>
+  --
+  cliente_id : BIGINT <<FK cliente_externo.id>>
+  suscripcion_id : BIGINT <<FK suscripcion_alerta.id>>
+  autobus_id : BIGINT <<FK autobus.id>>         ' opcional si el bus es local
+  ruta_id : BIGINT <<FK ruta.id>>               ' opcional si la ruta es local
+  ruta_id_externo : VARCHAR(64)                 ' si la ruta es externa
+  viaje_id_externo : VARCHAR(64)                ' contexto viaje (MS Transporte)
+  distancia_m : INTEGER
+  eta_minutos : INTEGER
+  canal : VARCHAR(16)              ' EMAIL, SMS, PUSH
+  mensaje : TEXT
+  enviado_en : TIMESTAMPTZ
+  entregado : BOOLEAN
+  error : TEXT
+}
+
+' ==========
+' Relaciones intra-MS (solo donde hay FK)
+' ==========
+usuario ||--o{ sesion_autenticacion : "tiene"
+
+empresa_transporte ||--o{ piloto  : "emplea"
+empresa_transporte ||--o{ autobus : "opera"
+empresa_transporte ||--o{ ruta    : "administra"
+
+ruta ||--o{ ruta_geopunto : "definida por"
+ruta ||--o{ parada : "tiene"
+
+autobus ||--o{ asignacion_autobus_ruta : "asignado a"
+ruta    ||--o{ asignacion_autobus_ruta : "recorre"
+piloto  ||--o{ asignacion_autobus_ruta : "conduce"
+
+asignacion_autobus_ruta ||--o{ viaje_autobus : "genera N viajes"
+viaje_autobus ||--o{ posicion_autobus : "recibe posiciones"
+
+tipo_evento   ||--o{ evento_trafico : "clasifica"
+nivel_gravedad||--o{ evento_trafico : "nivel"
+estado_evento ||--o{ evento_trafico : "estado"
+usuario ||--o{ evento_trafico : "crea/actualiza"
+
+evento_trafico ||--o{ evento_ruta_afectada : "afecta rutas (externas)"
+
+cliente_externo ||--o{ suscripcion_alerta : "crea"
+suscripcion_alerta ||--o{ notificacion : "dispara"
+cliente_externo ||--o{ notificacion : "recibe"
+
+' ==========
+' Relación inter-MS (sin FK): VIAJE -> EVENTO por ID externo
+' ==========
+viaje_autobus .. evento_trafico : "«external_ref» sin FK (ID externo)"
+note on link
+  Relación entre microservicios:
+  - MS Transporte emite eventos (Outbox/CDC/EventBus) con ID del viaje.
+  - MS Eventos persiste el ID en evento_trafico.viaje_id_externo
+    + viaje_sistema_origen y correlacion_id para trazabilidad.
+  - La resolución es por contrato de API (no por FK).
+end note
+
+' ==========
+' Leyenda
+' ==========
+legend left
+  «FK»   Relación interna (misma BD/MS)
+  «external_ref»  Relación entre MS por ID externo (sin FK)
+endlegend
+
+@enduml
