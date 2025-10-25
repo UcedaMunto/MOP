@@ -47,25 +47,28 @@ services:
     depends_on:
       - postgres
 
-  #central:
-  #  container_name: central
-  #  environment:
-  #    TZ: America/El_Salvador
-  #    LANG: en_US.UTF-8
-  #  extra_hosts:
-  #    - "host.docker.internal:host-gateway"
-  #  volumes:
-  #    - static:/static
-  #    - ./DJANGO_UCEDA:/app
-  #  env_file:
-  #    - .env
-  #  build:
-  #    context: ./DJANGO_UCEDA
-  #  ports:
-  #    - "81:8000"
-  #  networks:
-  #    mop_net:
-  #      ipv4_address: 172.28.0.12
+  central:
+    container_name: central
+    environment:
+      TZ: America/El_Salvador
+      LANG: en_US.UTF-8
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - static:/static
+      - ./DJANGO_UCEDA:/app
+    env_file:
+      - .env
+    build:
+      context: ./DJANGO_UCEDA
+    ports:
+      - "80:8000"
+    networks:
+      mop_net:
+        ipv4_address: 172.28.0.12
+    depends_on:
+      - postgres
+      - redis
 
 
 networks:
