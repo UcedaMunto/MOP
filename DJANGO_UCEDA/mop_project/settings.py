@@ -104,12 +104,12 @@ DATABASES = {
         'PORT': config('DB_PORT', default=''),
     },
     'rutas_viajes': {
-        'ENGINE': config('DB_ENGINE', default='django.db.backends.postgresql'),
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': 'rutas_viajes',
-        'USER': config('DB_USER', default=''),
-        'PASSWORD': config('DB_PASSWORD', default=''),
-        'HOST': config('DB_HOST', default=''),
-        'PORT': config('DB_PORT', default=''),
+        'USER': config('DB_USER', default='admin_user'),
+        'PASSWORD': config('DB_PASSWORD', default='ChangeMe_SuperSeguro_2025!'),
+        'HOST': config('DB_HOST', default='postgres_17'),
+        'PORT': config('DB_PORT', default='5432'),
     }
 }
 
