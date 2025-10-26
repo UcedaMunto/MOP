@@ -1,0 +1,15 @@
+# METADATA DEL BACKUP COMPLETO - PROYECTO MOP
+# ==========================================
+
+Tipo: Backup completo del cluster PostgreSQL
+Fecha de creación: 2025-10-26 11:17:27
+Timestamp: 20251026_111726
+Incluye: Todas las bases de datos, usuarios, roles, permisos
+Contenedor: postgres_17
+
+# Para restaurar completamente:
+docker exec -i postgres_17 psql -U admin_user -h localhost < cluster_complete_seed.sql
+
+# Información del sistema:
+Versión de PostgreSQL: postgres (PostgreSQL) 16.4
+Proyecto: MOP (Ministerio de Obras Públicas)

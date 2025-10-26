@@ -63,6 +63,7 @@ services:
       context: ./DJANGO_UCEDA
     ports:
       - "80:8000"
+      - "443:8000"
     networks:
       mop_net:
         ipv4_address: 172.28.0.12

@@ -5,6 +5,9 @@ python manage.py makemigrations
 python manage.py migrate
 #python manage.py clear_cache
 
+# Collect static files for production
+python manage.py collectstatic --noinput
+
 # para codigo de barra
 
 # Ejecuta el servidor de desarrollo de Django en modo de escucha

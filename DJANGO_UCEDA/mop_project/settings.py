@@ -151,7 +151,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -197,6 +201,7 @@ SPECTACULAR_SETTINGS = {
     'SERVERS': [
         {'url': 'http://localhost:8000', 'description': 'Servidor de Desarrollo'},
         {'url': 'http://127.0.0.1:8000', 'description': 'Servidor Local'},
+        {'url': 'http://34.45.166.79', 'description': 'Servidor de Producción'},
     ],
     'TAGS': [
         {'name': 'Catálogos', 'description': 'Gestión de catálogos (tipos, estados, niveles)'},
@@ -222,10 +227,12 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
     "http://127.0.0.1:8080",
     "http://localhost:8000",
+    "http://34.45.166.79",
+    "http://34.45.166.79:80",
 ]
 
 # Para desarrollo, permitir todos los orígenes (SOLO EN DESARROLLO)
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=False, cast=bool)
 CORS_ALLOW_CREDENTIALS = True
 
 # Configuración adicional de CORS para API
@@ -249,6 +256,8 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:8080",
     "http://localhost:8000",
     "http://localhost",
+    "http://34.45.166.79",
+    "http://34.45.166.79:80",
 ]
 
 # Logging para debug
@@ -337,3 +346,12 @@ GEOJSON_DEFAULT_CRS = {
     'type': 'name',
     'properties': {'name': 'EPSG:4326'}
 }
+
+# Security settings for production
+if not DEBUG:
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True

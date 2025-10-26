@@ -60,14 +60,31 @@ venv.bak/
 ehthumbs.db
 Thumbs.db
 
-# Environment variables
+# Environment variables (CRITICAL: Keep these secret!)
 .env
 .env.local
 .env.*.local
+POSTGRES/.env
+REDIS/.env
 
 # Docker
 .dockerignore
 docker-compose.override.yml
+
+# =============================================================================
+# BACKUPS CONFIGURATION
+# =============================================================================
+# Exclude time-stamped backups but INCLUDE seed backups for project initialization
+backups/postgres/*backup_*.sql
+backups/postgres/*backup_*.dump
+backups/postgres/full_*.sql
+
+# INCLUDE seed backups (these are important for project setup)
+!backups/postgres/*_seed.sql
+!backups/postgres/*_seed.dump  
+!backups/postgres/*_seed_metadata.txt
+!backups/postgres/cluster_complete_seed.sql
+!backups/postgres/cluster_complete_seed_metadata.txt
 
 # Logs
 logs/

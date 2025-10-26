@@ -1,0 +1,27 @@
+# METADATA DEL BACKUP - PROYECTO MOP
+# =================================
+
+Base de datos: eventos_trafico
+Tipo de backup: seed
+Fecha de creación: 2025-10-26 11:17:25
+Timestamp: 20251026_111724
+Usuario PostgreSQL: admin_user
+Host: 172.28.0.10
+Puerto: 5432
+Contenedor: postgres_17
+
+# Archivos generados:
+- eventos_trafico_seed.sql (formato SQL plano)
+- eventos_trafico_seed.dump (formato custom comprimido)
+
+# Para restaurar:
+# Formato SQL:
+docker exec -i postgres_17 psql -U admin_user -d eventos_trafico < eventos_trafico_seed.sql
+
+# Formato CUSTOM:
+docker exec -i postgres_17 pg_restore -U admin_user -d eventos_trafico --clean --if-exists eventos_trafico_seed.dump
+
+# Información del sistema:
+Versión de PostgreSQL: postgres (PostgreSQL) 16.4
+Sistema operativo: Linux uceda-ROG-Zephyrus-G14-GA402NU-GA402NU 6.8.0-52-generic #53-Ubuntu SMP PREEMPT_DYNAMIC Sat Jan 11 00:06:25 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux
+Proyecto: MOP (Ministerio de Obras Públicas)
