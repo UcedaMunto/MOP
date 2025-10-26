@@ -171,6 +171,47 @@
     </div>
 </div>
 
+<!-- Sección de Autenticación -->
+<div class="row mb-4 mt-5">
+    <div class="col-12">
+        <h2 class="text-center mb-2">
+            <i class="bi bi-person-circle text-primary"></i>
+            Gestión de Usuarios
+        </h2>
+        <p class="text-center text-muted">Iniciar sesión o crear una cuenta nueva</p>
+    </div>
+</div>
+
+<div class="row g-4 justify-content-center mb-5">
+    <!-- Iniciar Sesión -->
+    <div class="col-lg-3 col-md-6">
+        <div class="card h-100 shadow-sm hover-card" onclick="showLogin()">
+            <div class="card-body text-center">
+                <i class="bi bi-box-arrow-in-right text-primary mb-3" style="font-size: 3rem;"></i>
+                <h5 class="card-title">Iniciar Sesión</h5>
+                <p class="card-text text-muted">Acceder con tu cuenta existente</p>
+                <button class="btn btn-primary btn-sm" onclick="showLogin()">
+                    Ingresar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Registrarse -->
+    <div class="col-lg-3 col-md-6">
+        <div class="card h-100 shadow-sm hover-card" onclick="showRegister()">
+            <div class="card-body text-center">
+                <i class="bi bi-person-plus text-success mb-3" style="font-size: 3rem;"></i>
+                <h5 class="card-title">Crear Cuenta</h5>
+                <p class="card-text text-muted">Registrarse como nuevo usuario</p>
+                <button class="btn btn-success btn-sm" onclick="showRegister()">
+                    Registrarse
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modal para opciones CRUD -->
 <div class="modal fade" id="optionsModal" tabindex="-1">
     <div class="modal-dialog">
@@ -1283,6 +1324,12 @@
         document.getElementById('loginError').classList.add('d-none');
         document.getElementById('loginForm').reset();
         new bootstrap.Modal(document.getElementById('loginModal')).show();
+    }
+    
+    function showRegister() {
+        document.getElementById('registerError').classList.add('d-none');
+        document.getElementById('registerForm').reset();
+        new bootstrap.Modal(document.getElementById('registerModal')).show();
     }
     
     function performLogin() {
