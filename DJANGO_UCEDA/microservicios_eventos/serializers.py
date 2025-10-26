@@ -159,6 +159,8 @@ class EventoTraficoSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             'id', 'correlacion_id', 'creado_en', 'actualizado_en',
+            'creado_por_id_externo', 'creado_por_username',
+            'actualizado_por_id_externo', 'actualizado_por_username',
             'rutas_afectadas', 'dias_desde_ocurrencia', 'esta_vigente'
         ]
 
@@ -260,6 +262,10 @@ class EventoTraficoCreateUpdateSerializer(serializers.ModelSerializer):
             'fecha_ocurrencia', 'fecha_reporte', 'expira_en',
             'viaje_id_externo', 'viaje_sistema_origen',
             'vehiculo_id_externo', 'conductor_id_externo',
+            'creado_por_id_externo', 'creado_por_username',
+            'actualizado_por_id_externo', 'actualizado_por_username'
+        ]
+        read_only_fields = [
             'creado_por_id_externo', 'creado_por_username',
             'actualizado_por_id_externo', 'actualizado_por_username'
         ]
@@ -413,6 +419,12 @@ class PointSerializer(serializers.ModelSerializer):
     occurred_at = serializers.DateTimeField(source='fecha_ocurrencia', read_only=True)
     reported_at = serializers.DateTimeField(source='fecha_reporte', read_only=True)
     expires_at = serializers.DateTimeField(source='expira_en', read_only=True)
+    created_by = serializers.CharField(source='creado_por_username', read_only=True)
+    created_by_id = serializers.IntegerField(source='creado_por_id_externo', read_only=True)
+    created_at = serializers.DateTimeField(source='creado_en', read_only=True)
+    updated_by = serializers.CharField(source='actualizado_por_username', read_only=True)
+    updated_by_id = serializers.IntegerField(source='actualizado_por_id_externo', read_only=True)
+    updated_at = serializers.DateTimeField(source='actualizado_en', read_only=True)
     
     class Meta:
         model = EventoTrafico
@@ -422,6 +434,8 @@ class PointSerializer(serializers.ModelSerializer):
             'severity', 'severity_name', 'severity_level',
             'status', 'status_name',
             'lat', 'long', 'radius_meters',
-            'occurred_at', 'reported_at', 'expires_at'
+            'occurred_at', 'reported_at', 'expires_at',
+            'created_by', 'created_by_id', 'created_at',
+            'updated_by', 'updated_by_id', 'updated_at'
         ]
         read_only_fields = fields

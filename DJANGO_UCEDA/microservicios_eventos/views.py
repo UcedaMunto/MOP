@@ -547,6 +547,24 @@ class EventoTraficoViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+    def perform_create(self, serializer):
+        """Llenar automáticamente los campos de auditoría al crear"""
+        user = self.request.user
+        serializer.save(
+            creado_por_id_externo=user.id,
+            creado_por_username=user.username,
+            # creado_en se llena automáticamente por el modelo
+        )
+
+    def perform_update(self, serializer):
+        """Llenar automáticamente los campos de auditoría al actualizar"""
+        user = self.request.user
+        serializer.save(
+            actualizado_por_id_externo=user.id,
+            actualizado_por_username=user.username,
+            # actualizado_en se llena automáticamente por el modelo
+        )
+
     def perform_destroy(self, instance):
         """Eliminación lógica en lugar de física"""
         instance.eliminado_en = timezone.now()
@@ -798,3 +816,45 @@ def points_list(request):
         {"detail": "Método no permitido"}, 
         status=status.HTTP_405_METHOD_NOT_ALLOWED
     )
+
+
+@extend_schema(
+    operation_id='get_traffic_point_by_id',
+    summary='Obtener punto de georeferencia por ID',
+    description='Retorna un punto específico de georeferencia de evento de tráfico por su ID.',
+    tags=['Puntos de Georeferencia'],
+    parameters=[
+        OpenApiParameter(
+            name='id',
+            type=OpenApiTypes.INT,
+            location=OpenApiParameter.PATH,
+            description='ID del evento/punto a obtener',
+            required=True
+        )
+    ],
+    responses={
+        200: PointSerializer,
+        404: 'Punto no encontrado',
+        401: 'No autenticado',
+    }
+)
+@api_view(['GET'])
+@permission_classes([IsAuthenticatedOrReadOnly])
+def point_detail(request, id):
+    """
+    GET /points/{id}: Retorna un punto específico de georeferencia por ID.
+    """
+    try:
+        # Obtener el evento específico por ID
+        evento = EventoTrafico.objects.select_related('tipo', 'gravedad', 'estado').get(id=id)
+        
+        # Serializar el resultado
+        serializer = PointSerializer(evento)
+        
+        return Response(serializer.data, status=status.HTTP_200_OK)
+        
+    except EventoTrafico.DoesNotExist:
+        return Response(
+            {"error": f"No se encontró un punto con ID {id}"},
+            status=status.HTTP_404_NOT_FOUND
+        )

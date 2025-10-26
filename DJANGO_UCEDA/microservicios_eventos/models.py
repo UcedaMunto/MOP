@@ -136,8 +136,7 @@ class EventoTrafico(models.Model):
     )
     
     # Referencias externas a otros microservicios (sin FK)
-    viaje_id_externo = models.CharField(
-        max_length=64,
+    viaje_id_externo = models.IntegerField(
         null=True,
         blank=True,
         help_text="ID del viaje en MS Transporte"
@@ -148,14 +147,12 @@ class EventoTrafico(models.Model):
         blank=True,
         help_text="Sistema origen del viaje (ej: transporte-ms)"
     )
-    vehiculo_id_externo = models.CharField(
-        max_length=64,
+    vehiculo_id_externo = models.IntegerField(
         null=True,
         blank=True,
         help_text="ID del vehículo en MS Transporte"
     )
-    conductor_id_externo = models.CharField(
-        max_length=64,
+    conductor_id_externo = models.IntegerField(
         null=True,
         blank=True,
         help_text="ID del conductor en MS Transporte"
@@ -167,8 +164,7 @@ class EventoTrafico(models.Model):
     )
     
     # Referencias a usuarios (IDs externos, sin FK porque viven en otra BD)
-    creado_por_id_externo = models.CharField(
-        max_length=64,
+    creado_por_id_externo = models.IntegerField(
         null=True,
         blank=True,
         help_text="ID del usuario que creó el evento (referencia externa)"
@@ -179,8 +175,7 @@ class EventoTrafico(models.Model):
         blank=True,
         help_text="Username del usuario que creó el evento (snapshot)"
     )
-    actualizado_por_id_externo = models.CharField(
-        max_length=64,
+    actualizado_por_id_externo = models.IntegerField(
         null=True,
         blank=True,
         help_text="ID del usuario que actualizó el evento (referencia externa)"
@@ -251,8 +246,7 @@ class EventoRutaAfectada(models.Model):
         max_length=32,
         help_text="Sistema origen de la ruta (ej: rutas-ms, SIG)"
     )
-    ruta_id_externo = models.CharField(
-        max_length=64,
+    ruta_id_externo = models.IntegerField(
         help_text="ID de la ruta en el sistema externo"
     )
     
@@ -295,4 +289,4 @@ class EventoRutaAfectada(models.Model):
         ]
 
     def __str__(self):
-        return f"Evento {self.evento.id} - Ruta {self.ruta_codigo or self.ruta_id_externo} ({self.relevancia})"
+        return f"Evento {self.evento.id} - Ruta {self.ruta_codigo or str(self.ruta_id_externo)} ({self.relevancia})"
