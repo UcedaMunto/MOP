@@ -3,6 +3,121 @@
 {% block title %}Home - MOP Eventos de Tráfico{% endblock %}
 
 {% block content %}
+
+<!-- Sección de Autenticación -->
+<div class="row mb-4 mt-5">
+    <div class="col-12">
+        <h2 class="text-center mb-2">
+            <i class="bi bi-person-circle text-primary"></i>
+            Gestión de Usuarios
+        </h2>
+        <p class="text-center text-muted">Iniciar sesión o crear una cuenta nueva</p>
+    </div>
+</div>
+
+<div class="row g-4 justify-content-center mb-5">
+        <!-- Registrarse -->
+    <div class="col-lg-3 col-md-6">
+        <div class="card h-100 shadow-sm hover-card" onclick="showRegister()">
+            <div class="card-body text-center">
+                <i class="bi bi-person-plus text-success mb-3" style="font-size: 3rem;"></i>
+                <h5 class="card-title">Crear Cuenta</h5>
+                <p class="card-text text-muted">Registrarse como nuevo usuario</p>
+                <button class="btn btn-success btn-sm" onclick="showRegister()">
+                    Registrarse
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Iniciar Sesión -->
+    <div class="col-lg-3 col-md-6">
+        <div class="card h-100 shadow-sm hover-card" onclick="showLogin()">
+            <div class="card-body text-center">
+                <i class="bi bi-box-arrow-in-right text-primary mb-3" style="font-size: 3rem;"></i>
+                <h5 class="card-title">Iniciar Sesión</h5>
+                <p class="card-text text-muted">Acceder con tu cuenta existente</p>
+                <button class="btn btn-primary btn-sm" onclick="showLogin()">
+                    Ingresar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Puntos de Georeferencia -->
+    <div class="col-lg-3 col-md-6">
+        <div class="card h-100 shadow-sm hover-card" onclick="showPointsForm()">
+            <div class="card-body text-center">
+                <i class="bi bi-geo-alt-fill text-warning mb-3" style="font-size: 3rem;"></i>
+                <h5 class="card-title">Puntos GPS</h5>
+                <p class="card-text text-muted">Buscar eventos por ubicación</p>
+                <button class="btn btn-warning btn-sm" onclick="showPointsForm()">
+                    Buscar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Consultar Punto Específico -->
+    <div class="col-lg-3 col-md-6">
+        <div class="card h-100 shadow-sm hover-card" onclick="showPointDetailForm()">
+            <div class="card-body text-center">
+                <i class="bi bi-search text-info mb-3" style="font-size: 3rem;"></i>
+                <h5 class="card-title">Consultar Punto</h5>
+                <p class="card-text text-muted">Buscar punto específico por ID</p>
+                <button class="btn btn-info btn-sm" onclick="showPointDetailForm()">
+                    Consultar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Sección de Acciones de Eventos -->
+<div class="row mb-4 mt-5">
+    <div class="col-12">
+        <h3 class="text-center mb-2">
+            <i class="bi bi-tools text-primary"></i>
+            Acciones sobre Eventos
+        </h3>
+        <p class="text-center text-muted">Actualizar y eliminar eventos existentes</p>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <!-- Actualizar Eventos -->
+    <div class="col-lg-6 col-md-6">
+        <div class="card h-100 shadow-sm hover-card">
+            <div class="card-body text-center">
+                <i class="bi bi-pencil-square text-warning mb-3" style="font-size: 3rem;"></i>
+                <h5 class="card-title">Actualizar Eventos</h5>
+                <p class="card-text text-muted">Modificar eventos de tráfico existentes</p>
+                <button class="btn btn-warning btn-sm" onclick="showUpdateEventModal()">
+                    <i class="bi bi-pencil me-1"></i>
+                    Actualizar Evento
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Eliminar Eventos -->
+    <div class="col-lg-6 col-md-6">
+        <div class="card h-100 shadow-sm hover-card">
+            <div class="card-body text-center">
+                <i class="bi bi-trash3-fill text-danger mb-3" style="font-size: 3rem;"></i>
+                <h5 class="card-title">Eliminar Eventos</h5>
+                <p class="card-text text-muted">Eliminar eventos de tráfico existentes</p>
+                <button class="btn btn-danger btn-sm" onclick="showDeleteEventModal()">
+                    <i class="bi bi-trash me-1"></i>
+                    Eliminar Evento
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <div class="row">
     <div class="col-12">
         <h1 class="text-center mb-4">
@@ -85,48 +200,6 @@
     </div>
 </div>
 
-<!-- Sección de Acciones de Eventos -->
-<div class="row mb-4 mt-5">
-    <div class="col-12">
-        <h3 class="text-center mb-2">
-            <i class="bi bi-tools text-primary"></i>
-            Acciones sobre Eventos
-        </h3>
-        <p class="text-center text-muted">Actualizar y eliminar eventos existentes</p>
-    </div>
-</div>
-
-<div class="row g-4 mb-5">
-    <!-- Actualizar Eventos -->
-    <div class="col-lg-6 col-md-6">
-        <div class="card h-100 shadow-sm hover-card">
-            <div class="card-body text-center">
-                <i class="bi bi-pencil-square text-warning mb-3" style="font-size: 3rem;"></i>
-                <h5 class="card-title">Actualizar Eventos</h5>
-                <p class="card-text text-muted">Modificar eventos de tráfico existentes</p>
-                <button class="btn btn-warning btn-sm" onclick="showUpdateEventModal()">
-                    <i class="bi bi-pencil me-1"></i>
-                    Actualizar Evento
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Eliminar Eventos -->
-    <div class="col-lg-6 col-md-6">
-        <div class="card h-100 shadow-sm hover-card">
-            <div class="card-body text-center">
-                <i class="bi bi-trash3-fill text-danger mb-3" style="font-size: 3rem;"></i>
-                <h5 class="card-title">Eliminar Eventos</h5>
-                <p class="card-text text-muted">Eliminar eventos de tráfico existentes</p>
-                <button class="btn btn-danger btn-sm" onclick="showDeleteEventModal()">
-                    <i class="bi bi-trash me-1"></i>
-                    Eliminar Evento
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- Divider entre Eventos y Transporte -->
 <hr class="my-5" style="border-top: 3px solid #dee2e6;">
@@ -214,74 +287,6 @@
     </div>
 </div>
 
-<!-- Sección de Autenticación -->
-<div class="row mb-4 mt-5">
-    <div class="col-12">
-        <h2 class="text-center mb-2">
-            <i class="bi bi-person-circle text-primary"></i>
-            Gestión de Usuarios
-        </h2>
-        <p class="text-center text-muted">Iniciar sesión o crear una cuenta nueva</p>
-    </div>
-</div>
-
-<div class="row g-4 justify-content-center mb-5">
-    <!-- Iniciar Sesión -->
-    <div class="col-lg-3 col-md-6">
-        <div class="card h-100 shadow-sm hover-card" onclick="showLogin()">
-            <div class="card-body text-center">
-                <i class="bi bi-box-arrow-in-right text-primary mb-3" style="font-size: 3rem;"></i>
-                <h5 class="card-title">Iniciar Sesión</h5>
-                <p class="card-text text-muted">Acceder con tu cuenta existente</p>
-                <button class="btn btn-primary btn-sm" onclick="showLogin()">
-                    Ingresar
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Registrarse -->
-    <div class="col-lg-3 col-md-6">
-        <div class="card h-100 shadow-sm hover-card" onclick="showRegister()">
-            <div class="card-body text-center">
-                <i class="bi bi-person-plus text-success mb-3" style="font-size: 3rem;"></i>
-                <h5 class="card-title">Crear Cuenta</h5>
-                <p class="card-text text-muted">Registrarse como nuevo usuario</p>
-                <button class="btn btn-success btn-sm" onclick="showRegister()">
-                    Registrarse
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Puntos de Georeferencia -->
-    <div class="col-lg-3 col-md-6">
-        <div class="card h-100 shadow-sm hover-card" onclick="showPointsForm()">
-            <div class="card-body text-center">
-                <i class="bi bi-geo-alt-fill text-warning mb-3" style="font-size: 3rem;"></i>
-                <h5 class="card-title">Puntos GPS</h5>
-                <p class="card-text text-muted">Buscar eventos por ubicación</p>
-                <button class="btn btn-warning btn-sm" onclick="showPointsForm()">
-                    Buscar
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Consultar Punto Específico -->
-    <div class="col-lg-3 col-md-6">
-        <div class="card h-100 shadow-sm hover-card" onclick="showPointDetailForm()">
-            <div class="card-body text-center">
-                <i class="bi bi-search text-info mb-3" style="font-size: 3rem;"></i>
-                <h5 class="card-title">Consultar Punto</h5>
-                <p class="card-text text-muted">Buscar punto específico por ID</p>
-                <button class="btn btn-info btn-sm" onclick="showPointDetailForm()">
-                    Consultar
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- Modal para opciones CRUD -->
 <div class="modal fade" id="optionsModal" tabindex="-1">
@@ -756,6 +761,36 @@
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
     
+    .coordinate-display {
+        font-size: 0.85rem;
+        white-space: nowrap;
+    }
+    
+    .coordinates-info {
+        font-size: 0.9rem;
+    }
+    
+    .coordinate-row {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    .coordinate-display i {
+        font-size: 1rem;
+        margin-right: 0.25rem;
+    }
+    
+    .coordinate-display .fw-bold {
+        font-size: 0.8rem;
+        margin-right: 0.25rem;
+    }
+    
+    .coordinate-display .text-info {
+        font-family: 'Courier New', monospace;
+        font-weight: 500;
+    }
+    
     .table th {
         background-color: #f8f9fa;
         font-weight: 600;
@@ -988,7 +1023,14 @@
                         }
                     } else if (field === 'latitud' || field === 'longitud') {
                         if (value && value !== '-') {
-                            value = parseFloat(value).toFixed(6);
+                            const coordinate = parseFloat(value).toFixed(6);
+                            const label = field === 'latitud' ? 'Lat' : 'Lng';
+                            const icon = field === 'latitud' ? '↑' : '→';
+                            const colorClass = field === 'latitud' ? 'text-primary' : 'text-success';
+                            value = `<span class="coordinate-display">
+                                        <span class="${colorClass} fw-bold">${icon} ${label}:</span>
+                                        <span class="text-info ms-1">${coordinate}°</span>
+                                     </span>`;
                         }
                     } else if (field === 'radio_metros') {
                         if (value && value !== '-') {
@@ -2112,13 +2154,21 @@
                                     </div>
                                 </div>
                                 <div class="row g-2 small">
-                                    <div class="col-6">
-                                        <i class="bi bi-geo-alt text-danger"></i>
-                                        <span class="text-muted">${point.lat}, ${point.long}</span>
+                                    <div class="col-7">
+                                        <div class="border p-2 rounded bg-light">
+                                            <div class="fw-bold text-primary mb-1">
+                                                <i class="bi bi-geo-alt-fill me-1"></i>Coordenadas GPS
+                                            </div>
+                                            ${formatCoordinates(point.lat, point.long)}
+                                        </div>
                                     </div>
-                                    <div class="col-6">
-                                        <i class="bi bi-circle text-warning"></i>
-                                        <span class="text-muted">${point.radius_meters}m</span>
+                                    <div class="col-5">
+                                        <div class="text-center p-2">
+                                            <div class="fw-bold text-warning mb-1">
+                                                <i class="bi bi-circle text-warning"></i> Radio
+                                            </div>
+                                            <span class="badge bg-warning text-dark">${point.radius_meters}m</span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="row g-2 small mt-1">
@@ -2173,6 +2223,27 @@
             hour: '2-digit',
             minute: '2-digit'
         });
+    }
+    
+    function formatCoordinates(lat, lng) {
+        if (!lat || !lng) return 'Coordenadas no disponibles';
+        
+        // Formatear con precisión de 6 decimales
+        const latFixed = parseFloat(lat).toFixed(6);
+        const lngFixed = parseFloat(lng).toFixed(6);
+        
+        return `
+            <div class="coordinates-info">
+                <div class="coordinate-row mb-1">
+                    <i class="bi bi-arrow-up-circle text-primary me-1"></i>
+                    <span class="fw-bold">Lat:</span> <span class="text-info">${latFixed}</span>
+                </div>
+                <div class="coordinate-row">
+                    <i class="bi bi-arrow-right-circle text-success me-1"></i>
+                    <span class="fw-bold">Lng:</span> <span class="text-info">${lngFixed}</span>
+                </div>
+            </div>
+        `;
     }
     
     // ============== FUNCIONES DE CONSULTA DE PUNTO ESPECÍFICO ==============
@@ -2284,18 +2355,22 @@
                     </div>
                     
                     <div class="row g-3 mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Ubicación:</label>
-                            <div class="text-muted">
-                                <i class="bi bi-geo-alt text-danger me-1"></i>
-                                ${point.lat}, ${point.long}
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold text-primary">
+                                <i class="bi bi-geo-alt-fill me-1"></i>Coordenadas GPS:
+                            </label>
+                            <div class="border p-3 rounded bg-light">
+                                ${formatCoordinates(point.lat, point.long)}
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Radio de Afectación:</label>
-                            <div class="text-muted">
-                                <i class="bi bi-circle text-warning me-1"></i>
-                                ${point.radius_meters} metros
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold text-warning">
+                                <i class="bi bi-circle-fill me-1"></i>Radio de Afectación:
+                            </label>
+                            <div class="text-center p-2">
+                                <span class="badge bg-warning text-dark fs-6 p-2">
+                                    ${point.radius_meters} metros
+                                </span>
                             </div>
                         </div>
                     </div>
