@@ -269,6 +269,75 @@
                     Iniciar Sesión
                 </button>
             </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <small class="text-muted w-100 text-center">
+                    ¿No tienes cuenta? 
+                    <a href="#" onclick="switchToRegister()" class="text-decoration-none">Crear Cuenta</a>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Registro -->
+<div class="modal fade" id="registerModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-person-plus me-2"></i>
+                    Crear Cuenta
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="registerForm">
+                    <div class="mb-3">
+                        <label for="registerUsername" class="form-label">Nombre de Usuario</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                            <input type="text" class="form-control" id="registerUsername" name="username" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="registerEmail" class="form-label">Correo Electrónico</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                            <input type="email" class="form-control" id="registerEmail" name="email" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="registerPassword" class="form-label">Contraseña</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                            <input type="password" class="form-control" id="registerPassword" name="password" required>
+                        </div>
+                        <div class="form-text">Mínimo 8 caracteres</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="registerPasswordConfirm" class="form-label">Confirmar Contraseña</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                            <input type="password" class="form-control" id="registerPasswordConfirm" name="password_confirm" required>
+                        </div>
+                    </div>
+                    <div id="registerError" class="alert alert-danger d-none"></div>
+                    <div id="registerSuccess" class="alert alert-success d-none"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="performRegister()" id="registerButton">
+                    <span id="registerSpinner" class="spinner-border spinner-border-sm d-none me-2"></span>
+                    Crear Cuenta
+                </button>
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <small class="text-muted w-100 text-center">
+                    ¿Ya tienes cuenta? 
+                    <a href="#" onclick="switchToLogin()" class="text-decoration-none">Iniciar Sesión</a>
+                </small>
+            </div>
         </div>
     </div>
 </div>
@@ -1304,6 +1373,134 @@
         showLogin();
     }
     
+    // ============== FUNCIONES DE NAVEGACIÓN ENTRE MODALES ==============
+    
+    function switchToRegister() {
+        // Cerrar modal de login
+        const loginModalInstance = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
+        if (loginModalInstance) {
+            loginModalInstance.hide();
+        }
+        
+        // Limpiar y mostrar modal de registro
+        setTimeout(() => {
+            document.getElementById('registerForm').reset();
+            document.getElementById('registerError').classList.add('d-none');
+            document.getElementById('registerSuccess').classList.add('d-none');
+            new bootstrap.Modal(document.getElementById('registerModal')).show();
+        }, 300);
+    }
+    
+    function switchToLogin() {
+        // Cerrar modal de registro
+        const registerModalInstance = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
+        if (registerModalInstance) {
+            registerModalInstance.hide();
+        }
+        
+        // Limpiar y mostrar modal de login
+        setTimeout(() => {
+            document.getElementById('loginForm').reset();
+            document.getElementById('loginError').classList.add('d-none');
+            new bootstrap.Modal(document.getElementById('loginModal')).show();
+        }, 300);
+    }
+    
+    // ============== FUNCIONES DE REGISTRO ==============
+    
+    function performRegister() {
+        const registerButton = document.getElementById('registerButton');
+        const registerSpinner = document.getElementById('registerSpinner');
+        const registerError = document.getElementById('registerError');
+        const registerSuccess = document.getElementById('registerSuccess');
+        
+        const username = document.getElementById('registerUsername').value.trim();
+        const email = document.getElementById('registerEmail').value.trim();
+        const password = document.getElementById('registerPassword').value;
+        const passwordConfirm = document.getElementById('registerPasswordConfirm').value;
+        
+        // Validaciones básicas
+        if (!username || !email || !password || !passwordConfirm) {
+            registerError.textContent = 'Por favor, completa todos los campos';
+            registerError.classList.remove('d-none');
+            registerSuccess.classList.add('d-none');
+            return;
+        }
+        
+        if (password !== passwordConfirm) {
+            registerError.textContent = 'Las contraseñas no coinciden';
+            registerError.classList.remove('d-none');
+            registerSuccess.classList.add('d-none');
+            return;
+        }
+        
+        if (password.length < 8) {
+            registerError.textContent = 'La contraseña debe tener al menos 8 caracteres';
+            registerError.classList.remove('d-none');
+            registerSuccess.classList.add('d-none');
+            return;
+        }
+        
+        // Mostrar spinner
+        registerButton.disabled = true;
+        registerSpinner.classList.remove('d-none');
+        registerError.classList.add('d-none');
+        registerSuccess.classList.add('d-none');
+        
+        // Realizar registro
+        $.ajax({
+            url: API_BASE + 'register/',
+            method: 'POST',
+            data: JSON.stringify({
+                username: username,
+                email: email,
+                password: password,
+                password_confirm: passwordConfirm
+            }),
+            contentType: 'application/json',
+            success: function(response) {
+                registerSuccess.innerHTML = `
+                    <strong>¡Cuenta creada exitosamente!</strong><br>
+                    Bienvenido/a ${response.user.username}. Ahora puedes iniciar sesión.
+                `;
+                registerSuccess.classList.remove('d-none');
+                
+                // Limpiar formulario
+                document.getElementById('registerForm').reset();
+                
+                // Después de 3 segundos, cambiar al modal de login
+                setTimeout(() => {
+                    switchToLogin();
+                }, 3000);
+            },
+            error: function(xhr) {
+                let errorMsg = 'Error al crear la cuenta';
+                
+                if (xhr.responseJSON) {
+                    if (xhr.responseJSON.username) {
+                        errorMsg = xhr.responseJSON.username[0];
+                    } else if (xhr.responseJSON.email) {
+                        errorMsg = xhr.responseJSON.email[0];
+                    } else if (xhr.responseJSON.password) {
+                        errorMsg = xhr.responseJSON.password[0];
+                    } else if (xhr.responseJSON.password_confirm) {
+                        errorMsg = xhr.responseJSON.password_confirm[0];
+                    } else if (xhr.responseJSON.detail) {
+                        errorMsg = xhr.responseJSON.detail;
+                    }
+                }
+                
+                registerError.textContent = errorMsg;
+                registerError.classList.remove('d-none');
+                registerSuccess.classList.add('d-none');
+            },
+            complete: function() {
+                registerButton.disabled = false;
+                registerSpinner.classList.add('d-none');
+            }
+        });
+    }
+    
     function refreshToken() {
         const refresh = localStorage.getItem('refreshToken');
         if (!refresh) {
@@ -1348,6 +1545,12 @@
             performLogin();
         });
         
+        // Manejar Enter en el formulario de registro
+        $('#registerForm').on('submit', function(e) {
+            e.preventDefault();
+            performRegister();
+        });
+        
         // Agregar event listeners para limpiar backdrop cuando se cierren los modales
         $('#formModal').on('hidden.bs.modal', function() {
             cleanupModalBackdrop();
@@ -1362,6 +1565,10 @@
         });
         
         $('#loginModal').on('hidden.bs.modal', function() {
+            cleanupModalBackdrop();
+        });
+        
+        $('#registerModal').on('hidden.bs.modal', function() {
             cleanupModalBackdrop();
         });
     });
