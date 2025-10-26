@@ -1,0 +1,2999 @@
+--
+-- PostgreSQL database cluster dump
+--
+
+SET default_transaction_read_only = off;
+
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+
+--
+-- Drop databases (except postgres and template1)
+--
+
+DROP DATABASE appdb;
+DROP DATABASE eventos_trafico;
+DROP DATABASE rutas_viajes;
+
+
+
+
+--
+-- Drop roles
+--
+
+DROP ROLE admin_user;
+
+
+--
+-- Roles
+--
+
+CREATE ROLE admin_user;
+ALTER ROLE admin_user WITH SUPERUSER INHERIT CREATEROLE CREATEDB LOGIN REPLICATION BYPASSRLS PASSWORD 'SCRAM-SHA-256$4096:rLbyfP2uDblwE2PM251NDg==$M1uhbm1DHuNdivFg5PFfxdRE0PUX7YfJwaYr45O60FY=:HfIxU8gUkHQBN3MxXeEsBBbsxdXy8hYqJRuY+NN2UZ8=';
+
+--
+-- User Configurations
+--
+
+
+
+
+
+
+
+
+--
+-- Databases
+--
+
+--
+-- Database "template1" dump
+--
+
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 16.8
+-- Dumped by pg_dump version 16.8
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+UPDATE pg_catalog.pg_database SET datistemplate = false WHERE datname = 'template1';
+DROP DATABASE template1;
+--
+-- Name: template1; Type: DATABASE; Schema: -; Owner: admin_user
+--
+
+CREATE DATABASE template1 WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE_PROVIDER = libc LOCALE = 'C';
+
+
+ALTER DATABASE template1 OWNER TO admin_user;
+
+\connect template1
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: DATABASE template1; Type: COMMENT; Schema: -; Owner: admin_user
+--
+
+COMMENT ON DATABASE template1 IS 'default template for new databases';
+
+
+--
+-- Name: template1; Type: DATABASE PROPERTIES; Schema: -; Owner: admin_user
+--
+
+ALTER DATABASE template1 IS_TEMPLATE = true;
+
+
+\connect template1
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: DATABASE template1; Type: ACL; Schema: -; Owner: admin_user
+--
+
+REVOKE CONNECT,TEMPORARY ON DATABASE template1 FROM PUBLIC;
+GRANT CONNECT ON DATABASE template1 TO PUBLIC;
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+--
+-- Database "appdb" dump
+--
+
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 16.8
+-- Dumped by pg_dump version 16.8
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: appdb; Type: DATABASE; Schema: -; Owner: admin_user
+--
+
+CREATE DATABASE appdb WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE_PROVIDER = libc LOCALE = 'C';
+
+
+ALTER DATABASE appdb OWNER TO admin_user;
+
+\connect appdb
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: pgcrypto; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION pgcrypto; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
+
+
+--
+-- Name: uuid-ossp; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION "uuid-ossp"; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UUIDs)';
+
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- Name: auth_group; Type: TABLE; Schema: public; Owner: admin_user
+--
+
+CREATE TABLE public.auth_group (
+    id integer NOT NULL,
+    name character varying(150) NOT NULL
+);
+
+
+ALTER TABLE public.auth_group OWNER TO admin_user;
+
+--
+-- Name: auth_group_id_seq; Type: SEQUENCE; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE public.auth_group ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.auth_group_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: auth_group_permissions; Type: TABLE; Schema: public; Owner: admin_user
+--
+
+CREATE TABLE public.auth_group_permissions (
+    id bigint NOT NULL,
+    group_id integer NOT NULL,
+    permission_id integer NOT NULL
+);
+
+
+ALTER TABLE public.auth_group_permissions OWNER TO admin_user;
+
+--
+-- Name: auth_group_permissions_id_seq; Type: SEQUENCE; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE public.auth_group_permissions ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.auth_group_permissions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: auth_permission; Type: TABLE; Schema: public; Owner: admin_user
+--
+
+CREATE TABLE public.auth_permission (
+    id integer NOT NULL,
+    name character varying(255) NOT NULL,
+    content_type_id integer NOT NULL,
+    codename character varying(100) NOT NULL
+);
+
+
+ALTER TABLE public.auth_permission OWNER TO admin_user;
+
+--
+-- Name: auth_permission_id_seq; Type: SEQUENCE; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE public.auth_permission ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.auth_permission_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: auth_user; Type: TABLE; Schema: public; Owner: admin_user
+--
+
+CREATE TABLE public.auth_user (
+    id integer NOT NULL,
+    password character varying(128) NOT NULL,
+    last_login timestamp with time zone,
+    is_superuser boolean NOT NULL,
+    username character varying(150) NOT NULL,
+    first_name character varying(150) NOT NULL,
+    last_name character varying(150) NOT NULL,
+    email character varying(254) NOT NULL,
+    is_staff boolean NOT NULL,
+    is_active boolean NOT NULL,
+    date_joined timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE public.auth_user OWNER TO admin_user;
+
+--
+-- Name: auth_user_groups; Type: TABLE; Schema: public; Owner: admin_user
+--
+
+CREATE TABLE public.auth_user_groups (
+    id bigint NOT NULL,
+    user_id integer NOT NULL,
+    group_id integer NOT NULL
+);
+
+
+ALTER TABLE public.auth_user_groups OWNER TO admin_user;
+
+--
+-- Name: auth_user_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE public.auth_user_groups ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.auth_user_groups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: auth_user_id_seq; Type: SEQUENCE; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE public.auth_user ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.auth_user_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: auth_user_user_permissions; Type: TABLE; Schema: public; Owner: admin_user
+--
+
+CREATE TABLE public.auth_user_user_permissions (
+    id bigint NOT NULL,
+    user_id integer NOT NULL,
+    permission_id integer NOT NULL
+);
+
+
+ALTER TABLE public.auth_user_user_permissions OWNER TO admin_user;
+
+--
+-- Name: auth_user_user_permissions_id_seq; Type: SEQUENCE; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE public.auth_user_user_permissions ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.auth_user_user_permissions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: django_admin_log; Type: TABLE; Schema: public; Owner: admin_user
+--
+
+CREATE TABLE public.django_admin_log (
+    id integer NOT NULL,
+    action_time timestamp with time zone NOT NULL,
+    object_id text,
+    object_repr character varying(200) NOT NULL,
+    action_flag smallint NOT NULL,
+    change_message text NOT NULL,
+    content_type_id integer,
+    user_id integer NOT NULL,
+    CONSTRAINT django_admin_log_action_flag_check CHECK ((action_flag >= 0))
+);
+
+
+ALTER TABLE public.django_admin_log OWNER TO admin_user;
+
+--
+-- Name: django_admin_log_id_seq; Type: SEQUENCE; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE public.django_admin_log ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.django_admin_log_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: django_content_type; Type: TABLE; Schema: public; Owner: admin_user
+--
+
+CREATE TABLE public.django_content_type (
+    id integer NOT NULL,
+    app_label character varying(100) NOT NULL,
+    model character varying(100) NOT NULL
+);
+
+
+ALTER TABLE public.django_content_type OWNER TO admin_user;
+
+--
+-- Name: django_content_type_id_seq; Type: SEQUENCE; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE public.django_content_type ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.django_content_type_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: django_migrations; Type: TABLE; Schema: public; Owner: admin_user
+--
+
+CREATE TABLE public.django_migrations (
+    id bigint NOT NULL,
+    app character varying(255) NOT NULL,
+    name character varying(255) NOT NULL,
+    applied timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE public.django_migrations OWNER TO admin_user;
+
+--
+-- Name: django_migrations_id_seq; Type: SEQUENCE; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE public.django_migrations ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.django_migrations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: django_session; Type: TABLE; Schema: public; Owner: admin_user
+--
+
+CREATE TABLE public.django_session (
+    session_key character varying(40) NOT NULL,
+    session_data text NOT NULL,
+    expire_date timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE public.django_session OWNER TO admin_user;
+
+--
+-- Data for Name: auth_group; Type: TABLE DATA; Schema: public; Owner: admin_user
+--
+
+COPY public.auth_group (id, name) FROM stdin;
+\.
+
+
+--
+-- Data for Name: auth_group_permissions; Type: TABLE DATA; Schema: public; Owner: admin_user
+--
+
+COPY public.auth_group_permissions (id, group_id, permission_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: auth_permission; Type: TABLE DATA; Schema: public; Owner: admin_user
+--
+
+COPY public.auth_permission (id, name, content_type_id, codename) FROM stdin;
+1	Can add log entry	1	add_logentry
+2	Can change log entry	1	change_logentry
+3	Can delete log entry	1	delete_logentry
+4	Can view log entry	1	view_logentry
+5	Can add permission	2	add_permission
+6	Can change permission	2	change_permission
+7	Can delete permission	2	delete_permission
+8	Can view permission	2	view_permission
+9	Can add group	3	add_group
+10	Can change group	3	change_group
+11	Can delete group	3	delete_group
+12	Can view group	3	view_group
+13	Can add user	4	add_user
+14	Can change user	4	change_user
+15	Can delete user	4	delete_user
+16	Can view user	4	view_user
+17	Can add content type	5	add_contenttype
+18	Can change content type	5	change_contenttype
+19	Can delete content type	5	delete_contenttype
+20	Can view content type	5	view_contenttype
+21	Can add session	6	add_session
+22	Can change session	6	change_session
+23	Can delete session	6	delete_session
+24	Can view session	6	view_session
+25	Can add Evento de Tráfico	7	add_eventotrafico
+26	Can change Evento de Tráfico	7	change_eventotrafico
+27	Can delete Evento de Tráfico	7	delete_eventotrafico
+28	Can view Evento de Tráfico	7	view_eventotrafico
+29	Can add Estado de Evento	8	add_estadoevento
+30	Can change Estado de Evento	8	change_estadoevento
+31	Can delete Estado de Evento	8	delete_estadoevento
+32	Can view Estado de Evento	8	view_estadoevento
+33	Can add Nivel de Gravedad	9	add_nivelgravedad
+34	Can change Nivel de Gravedad	9	change_nivelgravedad
+35	Can delete Nivel de Gravedad	9	delete_nivelgravedad
+36	Can view Nivel de Gravedad	9	view_nivelgravedad
+37	Can add Tipo de Evento	10	add_tipoevento
+38	Can change Tipo de Evento	10	change_tipoevento
+39	Can delete Tipo de Evento	10	delete_tipoevento
+40	Can view Tipo de Evento	10	view_tipoevento
+41	Can add Ruta Afectada por Evento	11	add_eventorutaafectada
+42	Can change Ruta Afectada por Evento	11	change_eventorutaafectada
+43	Can delete Ruta Afectada por Evento	11	delete_eventorutaafectada
+44	Can view Ruta Afectada por Evento	11	view_eventorutaafectada
+45	Can add Empresa de Transporte	12	add_empresatransporte
+46	Can change Empresa de Transporte	12	change_empresatransporte
+47	Can delete Empresa de Transporte	12	delete_empresatransporte
+48	Can view Empresa de Transporte	12	view_empresatransporte
+49	Can add Autobús	13	add_autobus
+50	Can change Autobús	13	change_autobus
+51	Can delete Autobús	13	delete_autobus
+52	Can view Autobús	13	view_autobus
+53	Can add Piloto	14	add_piloto
+54	Can change Piloto	14	change_piloto
+55	Can delete Piloto	14	delete_piloto
+56	Can view Piloto	14	view_piloto
+57	Can add Ruta	15	add_ruta
+58	Can change Ruta	15	change_ruta
+59	Can delete Ruta	15	delete_ruta
+60	Can view Ruta	15	view_ruta
+61	Can add Parada	16	add_parada
+62	Can change Parada	16	change_parada
+63	Can delete Parada	16	delete_parada
+64	Can view Parada	16	view_parada
+65	Can add Asignación Autobús-Ruta	17	add_asignacionautobusruta
+66	Can change Asignación Autobús-Ruta	17	change_asignacionautobusruta
+67	Can delete Asignación Autobús-Ruta	17	delete_asignacionautobusruta
+68	Can view Asignación Autobús-Ruta	17	view_asignacionautobusruta
+69	Can add Punto Geográfico de Ruta	18	add_rutageopunto
+70	Can change Punto Geográfico de Ruta	18	change_rutageopunto
+71	Can delete Punto Geográfico de Ruta	18	delete_rutageopunto
+72	Can view Punto Geográfico de Ruta	18	view_rutageopunto
+73	Can add Viaje de Autobús	19	add_viajeautobus
+74	Can change Viaje de Autobús	19	change_viajeautobus
+75	Can delete Viaje de Autobús	19	delete_viajeautobus
+76	Can view Viaje de Autobús	19	view_viajeautobus
+77	Can add Posición de Autobús	20	add_posicionautobus
+78	Can change Posición de Autobús	20	change_posicionautobus
+79	Can delete Posición de Autobús	20	delete_posicionautobus
+80	Can view Posición de Autobús	20	view_posicionautobus
+\.
+
+
+--
+-- Data for Name: auth_user; Type: TABLE DATA; Schema: public; Owner: admin_user
+--
+
+COPY public.auth_user (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined) FROM stdin;
+2	pbkdf2_sha256$1000000$z2IYKegENsRiiiOADHkVka$VARHlFKkr6NvGCVQNak39Xl1ZVLQVOrZ9t5zgioX/9A=	\N	f	testuser			test@test.com	f	t	2025-10-25 13:28:27.204024-06
+3	pbkdf2_sha256$720000$s2q3NNv4jDmbIzFYJF6zSj$+H4G+TW9IjRMeDoKGVQmEvwUv0SDw/4lP/5WmqWDycg=	\N	f	test1			testuser@examp.net	f	t	2025-10-25 21:03:30.234911-06
+4	pbkdf2_sha256$720000$wRuYjOcT9ZOAJIEUkxrK6L$7oQVJoMYUuHkFZcEDvQolOcrMTHhIyn21mb7Poj0YTs=	\N	f	nuevousuario2024			nuevo@example.com	f	t	2025-10-25 21:06:47.74079-06
+5	pbkdf2_sha256$720000$a8DUR5WvQJTPTuDG4PP1YE$BsyAhY48HVq1cjdP4vN6+vdviz9OA5P1WF8q6qF6WW0=	\N	f	usuariotest123			test123@example.com	f	t	2025-10-25 21:08:10.453324-06
+6	pbkdf2_sha256$720000$lNpGTn4HxKlD7cD8FxGmfa$BpGXRzL016WrlEYxOMBdRKAmBr8/+ee+Ki5tTU7+4sg=	\N	f	alexuceda			alex.uceda@hotmail.com	f	t	2025-10-25 21:16:20.847277-06
+7	pbkdf2_sha256$720000$D1qDkZhX0tHRXENeddCoS4$b7arrJU7py11j5ZVtDrKw+yW01djv8X83v7g8IX4i7w=	\N	f	usuario_prueba			prueba@example.com	f	t	2025-10-25 21:28:10.211391-06
+1	pbkdf2_sha256$720000$WCaDb7zQrUQVycisOnUlBT$AJ6LttIa62HROL3/xSyosg71X0nmvOsvg0/BphRZb9A=	2025-10-25 11:11:14.709604-06	t	admin	Admin	MOP	admin@mop.com	t	t	2025-10-25 09:02:51.511666-06
+\.
+
+
+--
+-- Data for Name: auth_user_groups; Type: TABLE DATA; Schema: public; Owner: admin_user
+--
+
+COPY public.auth_user_groups (id, user_id, group_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: auth_user_user_permissions; Type: TABLE DATA; Schema: public; Owner: admin_user
+--
+
+COPY public.auth_user_user_permissions (id, user_id, permission_id) FROM stdin;
+1	1	1
+2	1	2
+3	1	3
+4	1	4
+5	1	5
+6	1	6
+7	1	7
+8	1	8
+9	1	9
+10	1	10
+11	1	11
+12	1	12
+13	1	13
+14	1	14
+15	1	15
+16	1	16
+17	1	17
+18	1	18
+19	1	19
+20	1	20
+21	1	21
+22	1	22
+23	1	23
+24	1	24
+25	1	25
+26	1	26
+27	1	27
+28	1	28
+29	1	29
+30	1	30
+31	1	31
+32	1	32
+33	1	33
+34	1	34
+35	1	35
+36	1	36
+37	1	37
+38	1	38
+39	1	39
+40	1	40
+41	1	41
+42	1	42
+43	1	43
+44	1	44
+\.
+
+
+--
+-- Data for Name: django_admin_log; Type: TABLE DATA; Schema: public; Owner: admin_user
+--
+
+COPY public.django_admin_log (id, action_time, object_id, object_repr, action_flag, change_message, content_type_id, user_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: django_content_type; Type: TABLE DATA; Schema: public; Owner: admin_user
+--
+
+COPY public.django_content_type (id, app_label, model) FROM stdin;
+1	admin	logentry
+2	auth	permission
+3	auth	group
+4	auth	user
+5	contenttypes	contenttype
+6	sessions	session
+7	microservicios_eventos	eventotrafico
+8	microservicios_eventos	estadoevento
+9	microservicios_eventos	nivelgravedad
+10	microservicios_eventos	tipoevento
+11	microservicios_eventos	eventorutaafectada
+12	microservicios_rutas_viajes	empresatransporte
+13	microservicios_rutas_viajes	autobus
+14	microservicios_rutas_viajes	piloto
+15	microservicios_rutas_viajes	ruta
+16	microservicios_rutas_viajes	parada
+17	microservicios_rutas_viajes	asignacionautobusruta
+18	microservicios_rutas_viajes	rutageopunto
+19	microservicios_rutas_viajes	viajeautobus
+20	microservicios_rutas_viajes	posicionautobus
+\.
+
+
+--
+-- Data for Name: django_migrations; Type: TABLE DATA; Schema: public; Owner: admin_user
+--
+
+COPY public.django_migrations (id, app, name, applied) FROM stdin;
+1	contenttypes	0001_initial	2025-10-24 22:34:20.959134-06
+2	auth	0001_initial	2025-10-24 22:34:21.054279-06
+3	admin	0001_initial	2025-10-24 22:34:21.078021-06
+4	admin	0002_logentry_remove_auto_add	2025-10-24 22:34:21.08564-06
+5	admin	0003_logentry_add_action_flag_choices	2025-10-24 22:34:21.093127-06
+6	contenttypes	0002_remove_content_type_name	2025-10-24 22:34:21.110423-06
+7	auth	0002_alter_permission_name_max_length	2025-10-24 22:34:21.13591-06
+8	auth	0003_alter_user_email_max_length	2025-10-24 22:34:21.144321-06
+9	auth	0004_alter_user_username_opts	2025-10-24 22:34:21.151513-06
+10	auth	0005_alter_user_last_login_null	2025-10-24 22:34:21.164092-06
+11	auth	0006_require_contenttypes_0002	2025-10-24 22:34:21.165864-06
+12	auth	0007_alter_validators_add_error_messages	2025-10-24 22:34:21.173091-06
+13	auth	0008_alter_user_username_max_length	2025-10-24 22:34:21.187996-06
+14	auth	0009_alter_user_last_name_max_length	2025-10-24 22:34:21.19714-06
+15	auth	0010_alter_group_name_max_length	2025-10-24 22:34:21.207301-06
+16	auth	0011_update_proxy_permissions	2025-10-24 22:34:21.2152-06
+17	auth	0012_alter_user_first_name_max_length	2025-10-24 22:34:21.222331-06
+18	sessions	0001_initial	2025-10-24 22:34:21.234608-06
+19	microservicios_eventos	0001_initial	2025-10-25 09:03:33.730024-06
+20	microservicios_rutas_viajes	0001_initial	2025-10-25 17:46:29.832505-06
+21	microservicios_eventos	0002_change_user_id_to_integer	2025-10-25 22:21:44.520991-06
+22	microservicios_eventos	0003_alter_eventorutaafectada_ruta_id_externo_and_more	2025-10-25 22:32:42.33918-06
+\.
+
+
+--
+-- Data for Name: django_session; Type: TABLE DATA; Schema: public; Owner: admin_user
+--
+
+COPY public.django_session (session_key, session_data, expire_date) FROM stdin;
+\.
+
+
+--
+-- Name: auth_group_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin_user
+--
+
+SELECT pg_catalog.setval('public.auth_group_id_seq', 1, false);
+
+
+--
+-- Name: auth_group_permissions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin_user
+--
+
+SELECT pg_catalog.setval('public.auth_group_permissions_id_seq', 1, false);
+
+
+--
+-- Name: auth_permission_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin_user
+--
+
+SELECT pg_catalog.setval('public.auth_permission_id_seq', 80, true);
+
+
+--
+-- Name: auth_user_groups_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin_user
+--
+
+SELECT pg_catalog.setval('public.auth_user_groups_id_seq', 1, false);
+
+
+--
+-- Name: auth_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin_user
+--
+
+SELECT pg_catalog.setval('public.auth_user_id_seq', 7, true);
+
+
+--
+-- Name: auth_user_user_permissions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin_user
+--
+
+SELECT pg_catalog.setval('public.auth_user_user_permissions_id_seq', 44, true);
+
+
+--
+-- Name: django_admin_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin_user
+--
+
+SELECT pg_catalog.setval('public.django_admin_log_id_seq', 1, false);
+
+
+--
+-- Name: django_content_type_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin_user
+--
+
+SELECT pg_catalog.setval('public.django_content_type_id_seq', 20, true);
+
+
+--
+-- Name: django_migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin_user
+--
+
+SELECT pg_catalog.setval('public.django_migrations_id_seq', 22, true);
+
+
+--
+-- Name: auth_group auth_group_name_key; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.auth_group
+    ADD CONSTRAINT auth_group_name_key UNIQUE (name);
+
+
+--
+-- Name: auth_group_permissions auth_group_permissions_group_id_permission_id_0cd325b0_uniq; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.auth_group_permissions
+    ADD CONSTRAINT auth_group_permissions_group_id_permission_id_0cd325b0_uniq UNIQUE (group_id, permission_id);
+
+
+--
+-- Name: auth_group_permissions auth_group_permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.auth_group_permissions
+    ADD CONSTRAINT auth_group_permissions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: auth_group auth_group_pkey; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.auth_group
+    ADD CONSTRAINT auth_group_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: auth_permission auth_permission_content_type_id_codename_01ab375a_uniq; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.auth_permission
+    ADD CONSTRAINT auth_permission_content_type_id_codename_01ab375a_uniq UNIQUE (content_type_id, codename);
+
+
+--
+-- Name: auth_permission auth_permission_pkey; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.auth_permission
+    ADD CONSTRAINT auth_permission_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: auth_user_groups auth_user_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.auth_user_groups
+    ADD CONSTRAINT auth_user_groups_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: auth_user_groups auth_user_groups_user_id_group_id_94350c0c_uniq; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.auth_user_groups
+    ADD CONSTRAINT auth_user_groups_user_id_group_id_94350c0c_uniq UNIQUE (user_id, group_id);
+
+
+--
+-- Name: auth_user auth_user_pkey; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.auth_user
+    ADD CONSTRAINT auth_user_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: auth_user_user_permissions auth_user_user_permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.auth_user_user_permissions
+    ADD CONSTRAINT auth_user_user_permissions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: auth_user_user_permissions auth_user_user_permissions_user_id_permission_id_14a6b632_uniq; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.auth_user_user_permissions
+    ADD CONSTRAINT auth_user_user_permissions_user_id_permission_id_14a6b632_uniq UNIQUE (user_id, permission_id);
+
+
+--
+-- Name: auth_user auth_user_username_key; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.auth_user
+    ADD CONSTRAINT auth_user_username_key UNIQUE (username);
+
+
+--
+-- Name: django_admin_log django_admin_log_pkey; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.django_admin_log
+    ADD CONSTRAINT django_admin_log_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: django_content_type django_content_type_app_label_model_76bd3d3b_uniq; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.django_content_type
+    ADD CONSTRAINT django_content_type_app_label_model_76bd3d3b_uniq UNIQUE (app_label, model);
+
+
+--
+-- Name: django_content_type django_content_type_pkey; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.django_content_type
+    ADD CONSTRAINT django_content_type_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: django_migrations django_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.django_migrations
+    ADD CONSTRAINT django_migrations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: django_session django_session_pkey; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.django_session
+    ADD CONSTRAINT django_session_pkey PRIMARY KEY (session_key);
+
+
+--
+-- Name: auth_group_name_a6ea08ec_like; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX auth_group_name_a6ea08ec_like ON public.auth_group USING btree (name varchar_pattern_ops);
+
+
+--
+-- Name: auth_group_permissions_group_id_b120cbf9; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX auth_group_permissions_group_id_b120cbf9 ON public.auth_group_permissions USING btree (group_id);
+
+
+--
+-- Name: auth_group_permissions_permission_id_84c5c92e; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX auth_group_permissions_permission_id_84c5c92e ON public.auth_group_permissions USING btree (permission_id);
+
+
+--
+-- Name: auth_permission_content_type_id_2f476e4b; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX auth_permission_content_type_id_2f476e4b ON public.auth_permission USING btree (content_type_id);
+
+
+--
+-- Name: auth_user_groups_group_id_97559544; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX auth_user_groups_group_id_97559544 ON public.auth_user_groups USING btree (group_id);
+
+
+--
+-- Name: auth_user_groups_user_id_6a12ed8b; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX auth_user_groups_user_id_6a12ed8b ON public.auth_user_groups USING btree (user_id);
+
+
+--
+-- Name: auth_user_user_permissions_permission_id_1fbb5f2c; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX auth_user_user_permissions_permission_id_1fbb5f2c ON public.auth_user_user_permissions USING btree (permission_id);
+
+
+--
+-- Name: auth_user_user_permissions_user_id_a95ead1b; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX auth_user_user_permissions_user_id_a95ead1b ON public.auth_user_user_permissions USING btree (user_id);
+
+
+--
+-- Name: auth_user_username_6821ab7c_like; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX auth_user_username_6821ab7c_like ON public.auth_user USING btree (username varchar_pattern_ops);
+
+
+--
+-- Name: django_admin_log_content_type_id_c4bce8eb; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX django_admin_log_content_type_id_c4bce8eb ON public.django_admin_log USING btree (content_type_id);
+
+
+--
+-- Name: django_admin_log_user_id_c564eba6; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX django_admin_log_user_id_c564eba6 ON public.django_admin_log USING btree (user_id);
+
+
+--
+-- Name: django_session_expire_date_a5c62663; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX django_session_expire_date_a5c62663 ON public.django_session USING btree (expire_date);
+
+
+--
+-- Name: django_session_session_key_c0390e0f_like; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX django_session_session_key_c0390e0f_like ON public.django_session USING btree (session_key varchar_pattern_ops);
+
+
+--
+-- Name: auth_group_permissions auth_group_permissio_permission_id_84c5c92e_fk_auth_perm; Type: FK CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.auth_group_permissions
+    ADD CONSTRAINT auth_group_permissio_permission_id_84c5c92e_fk_auth_perm FOREIGN KEY (permission_id) REFERENCES public.auth_permission(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: auth_group_permissions auth_group_permissions_group_id_b120cbf9_fk_auth_group_id; Type: FK CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.auth_group_permissions
+    ADD CONSTRAINT auth_group_permissions_group_id_b120cbf9_fk_auth_group_id FOREIGN KEY (group_id) REFERENCES public.auth_group(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: auth_permission auth_permission_content_type_id_2f476e4b_fk_django_co; Type: FK CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.auth_permission
+    ADD CONSTRAINT auth_permission_content_type_id_2f476e4b_fk_django_co FOREIGN KEY (content_type_id) REFERENCES public.django_content_type(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: auth_user_groups auth_user_groups_group_id_97559544_fk_auth_group_id; Type: FK CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.auth_user_groups
+    ADD CONSTRAINT auth_user_groups_group_id_97559544_fk_auth_group_id FOREIGN KEY (group_id) REFERENCES public.auth_group(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: auth_user_groups auth_user_groups_user_id_6a12ed8b_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.auth_user_groups
+    ADD CONSTRAINT auth_user_groups_user_id_6a12ed8b_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: auth_user_user_permissions auth_user_user_permi_permission_id_1fbb5f2c_fk_auth_perm; Type: FK CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.auth_user_user_permissions
+    ADD CONSTRAINT auth_user_user_permi_permission_id_1fbb5f2c_fk_auth_perm FOREIGN KEY (permission_id) REFERENCES public.auth_permission(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: auth_user_user_permissions auth_user_user_permissions_user_id_a95ead1b_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.auth_user_user_permissions
+    ADD CONSTRAINT auth_user_user_permissions_user_id_a95ead1b_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: django_admin_log django_admin_log_content_type_id_c4bce8eb_fk_django_co; Type: FK CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.django_admin_log
+    ADD CONSTRAINT django_admin_log_content_type_id_c4bce8eb_fk_django_co FOREIGN KEY (content_type_id) REFERENCES public.django_content_type(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: django_admin_log django_admin_log_user_id_c564eba6_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.django_admin_log
+    ADD CONSTRAINT django_admin_log_user_id_c564eba6_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+--
+-- Database "eventos_trafico" dump
+--
+
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 16.8
+-- Dumped by pg_dump version 16.8
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: eventos_trafico; Type: DATABASE; Schema: -; Owner: admin_user
+--
+
+CREATE DATABASE eventos_trafico WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE_PROVIDER = libc LOCALE = 'C';
+
+
+ALTER DATABASE eventos_trafico OWNER TO admin_user;
+
+\connect eventos_trafico
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- Name: django_migrations; Type: TABLE; Schema: public; Owner: admin_user
+--
+
+CREATE TABLE public.django_migrations (
+    id bigint NOT NULL,
+    app character varying(255) NOT NULL,
+    name character varying(255) NOT NULL,
+    applied timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE public.django_migrations OWNER TO admin_user;
+
+--
+-- Name: django_migrations_id_seq; Type: SEQUENCE; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE public.django_migrations ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.django_migrations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: estado_evento; Type: TABLE; Schema: public; Owner: admin_user
+--
+
+CREATE TABLE public.estado_evento (
+    id smallint NOT NULL,
+    codigo character varying(16) NOT NULL,
+    nombre character varying(32) NOT NULL,
+    creado_en timestamp with time zone NOT NULL,
+    actualizado_en timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE public.estado_evento OWNER TO admin_user;
+
+--
+-- Name: estado_evento_id_seq; Type: SEQUENCE; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE public.estado_evento ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.estado_evento_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: evento_ruta_afectada; Type: TABLE; Schema: public; Owner: admin_user
+--
+
+CREATE TABLE public.evento_ruta_afectada (
+    id bigint NOT NULL,
+    sistema_origen character varying(32) NOT NULL,
+    ruta_id_externo character varying(64) NOT NULL,
+    ruta_codigo character varying(32),
+    ruta_nombre character varying(120),
+    relevancia character varying(16) NOT NULL,
+    creado_en timestamp with time zone NOT NULL,
+    actualizado_en timestamp with time zone NOT NULL,
+    evento_id bigint NOT NULL
+);
+
+
+ALTER TABLE public.evento_ruta_afectada OWNER TO admin_user;
+
+--
+-- Name: evento_ruta_afectada_id_seq; Type: SEQUENCE; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE public.evento_ruta_afectada ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.evento_ruta_afectada_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: evento_trafico; Type: TABLE; Schema: public; Owner: admin_user
+--
+
+CREATE TABLE public.evento_trafico (
+    id bigint NOT NULL,
+    titulo character varying(140) NOT NULL,
+    descripcion text NOT NULL,
+    latitud numeric(9,6) NOT NULL,
+    longitud numeric(9,6) NOT NULL,
+    radio_metros integer NOT NULL,
+    fecha_ocurrencia timestamp with time zone NOT NULL,
+    fecha_reporte timestamp with time zone NOT NULL,
+    expira_en timestamp with time zone,
+    viaje_id_externo character varying(64),
+    viaje_sistema_origen character varying(32),
+    vehiculo_id_externo character varying(64),
+    conductor_id_externo character varying(64),
+    correlacion_id uuid,
+    creado_por_id_externo character varying(64),
+    creado_por_username character varying(150),
+    actualizado_por_id_externo character varying(64),
+    actualizado_por_username character varying(150),
+    creado_en timestamp with time zone NOT NULL,
+    actualizado_en timestamp with time zone NOT NULL,
+    eliminado_en timestamp with time zone,
+    estado_id smallint NOT NULL,
+    gravedad_id smallint NOT NULL,
+    tipo_id smallint NOT NULL
+);
+
+
+ALTER TABLE public.evento_trafico OWNER TO admin_user;
+
+--
+-- Name: evento_trafico_id_seq; Type: SEQUENCE; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE public.evento_trafico ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.evento_trafico_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: nivel_gravedad; Type: TABLE; Schema: public; Owner: admin_user
+--
+
+CREATE TABLE public.nivel_gravedad (
+    id smallint NOT NULL,
+    codigo character varying(16) NOT NULL,
+    nombre character varying(32) NOT NULL,
+    orden smallint NOT NULL,
+    creado_en timestamp with time zone NOT NULL,
+    actualizado_en timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE public.nivel_gravedad OWNER TO admin_user;
+
+--
+-- Name: nivel_gravedad_id_seq; Type: SEQUENCE; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE public.nivel_gravedad ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.nivel_gravedad_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: tipo_evento; Type: TABLE; Schema: public; Owner: admin_user
+--
+
+CREATE TABLE public.tipo_evento (
+    id smallint NOT NULL,
+    codigo character varying(32) NOT NULL,
+    nombre character varying(64) NOT NULL,
+    descripcion text NOT NULL,
+    activo boolean NOT NULL,
+    creado_en timestamp with time zone NOT NULL,
+    actualizado_en timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE public.tipo_evento OWNER TO admin_user;
+
+--
+-- Name: tipo_evento_id_seq; Type: SEQUENCE; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE public.tipo_evento ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.tipo_evento_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Data for Name: django_migrations; Type: TABLE DATA; Schema: public; Owner: admin_user
+--
+
+COPY public.django_migrations (id, app, name, applied) FROM stdin;
+2	contenttypes	0001_initial	2025-10-25 09:29:14.585442-06
+3	auth	0001_initial	2025-10-25 09:29:14.594396-06
+4	admin	0001_initial	2025-10-25 11:14:34.547197-06
+5	admin	0002_logentry_remove_auto_add	2025-10-25 11:14:34.559423-06
+6	admin	0003_logentry_add_action_flag_choices	2025-10-25 11:14:34.568925-06
+7	contenttypes	0002_remove_content_type_name	2025-10-25 11:14:34.583161-06
+8	auth	0002_alter_permission_name_max_length	2025-10-25 11:14:34.593903-06
+9	auth	0003_alter_user_email_max_length	2025-10-25 11:14:34.606084-06
+10	auth	0004_alter_user_username_opts	2025-10-25 11:14:34.618027-06
+11	auth	0005_alter_user_last_login_null	2025-10-25 11:14:34.635216-06
+12	auth	0006_require_contenttypes_0002	2025-10-25 11:14:34.63786-06
+13	auth	0007_alter_validators_add_error_messages	2025-10-25 11:14:34.650183-06
+14	auth	0008_alter_user_username_max_length	2025-10-25 11:14:34.658431-06
+15	auth	0009_alter_user_last_name_max_length	2025-10-25 11:14:34.667059-06
+16	auth	0010_alter_group_name_max_length	2025-10-25 11:14:34.67879-06
+17	auth	0011_update_proxy_permissions	2025-10-25 11:14:34.682131-06
+18	auth	0012_alter_user_first_name_max_length	2025-10-25 11:14:34.690198-06
+19	microservicios_eventos	0001_initial	2025-10-25 11:14:34.895843-06
+20	sessions	0001_initial	2025-10-25 11:14:34.898861-06
+\.
+
+
+--
+-- Data for Name: estado_evento; Type: TABLE DATA; Schema: public; Owner: admin_user
+--
+
+COPY public.estado_evento (id, codigo, nombre, creado_en, actualizado_en) FROM stdin;
+1	001	Planificado	2025-10-25 11:18:25.667905-06	2025-10-25 11:18:25.668145-06
+2	002	Activo	2025-10-25 11:18:40.153133-06	2025-10-25 11:18:40.153431-06
+3	003	Finalizado	2025-10-25 11:19:07.759886-06	2025-10-25 11:19:07.760186-06
+4	004	Inactivo	2025-10-25 13:33:04.069384-06	2025-10-25 13:33:04.069569-06
+\.
+
+
+--
+-- Data for Name: evento_ruta_afectada; Type: TABLE DATA; Schema: public; Owner: admin_user
+--
+
+COPY public.evento_ruta_afectada (id, sistema_origen, ruta_id_externo, ruta_codigo, ruta_nombre, relevancia, creado_en, actualizado_en, evento_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: evento_trafico; Type: TABLE DATA; Schema: public; Owner: admin_user
+--
+
+COPY public.evento_trafico (id, titulo, descripcion, latitud, longitud, radio_metros, fecha_ocurrencia, fecha_reporte, expira_en, viaje_id_externo, viaje_sistema_origen, vehiculo_id_externo, conductor_id_externo, correlacion_id, creado_por_id_externo, creado_por_username, actualizado_por_id_externo, actualizado_por_username, creado_en, actualizado_en, eliminado_en, estado_id, gravedad_id, tipo_id) FROM stdin;
+1	Accidente vehicular Av. Insurgentes Norte	Choque múltiple entre 3 vehículos bloquea dos carriles del sentido norte a la altura del metro Indios Verdes	19.432608	-99.133209	800	2025-10-25 12:30:00-06	2025-10-25 13:42:11.284224-06	2025-10-25 17:00:00-06	VIAJE_001	\N	VEH_001	\N	394cbf38-d85a-4647-aa4a-f6ba20ffa3c2	\N	\N	\N	\N	2025-10-25 13:42:11.284304-06	2025-10-25 13:42:11.284775-06	\N	2	2	1
+2	Obras de mantenimiento Periférico Sur	Trabajos de repavimentación en el carril derecho desde Tlalpan hasta Universidad. Reducción de velocidad a 40 km/h	19.302133	-99.137634	1500	2025-10-25 11:00:00-06	2025-10-25 13:42:21.36163-06	2025-10-26 00:00:00-06	VIAJE_002	\N	MANT_001	\N	90d62b10-bd87-4785-8977-51d48d54f780	\N	\N	\N	\N	2025-10-25 13:42:21.361641-06	2025-10-25 13:42:21.361869-06	\N	4	5	2
+3	arbol caido	asdasd	-12.232323	-77.232300	500	2025-10-25 16:20:00-06	2025-10-29 16:20:00-06	2025-10-29 00:00:00-06	\N	\N	\N	\N	b3e02a17-0280-4d15-bd0b-ea37c5004ebe	\N	\N	\N	\N	2025-10-25 16:20:40.299489-06	2025-10-25 16:20:40.299934-06	\N	2	13	5
+4	Evento de prueba con auditoría	Este evento sirve para probar los campos de auditoría automáticos	19.432600	-99.133200	500	2025-10-25 22:00:00-06	2025-10-25 22:00:00-06	\N	\N	\N	\N	\N	c43e29e4-297b-4be2-910a-64c71a132d03	7	usuario_prueba	\N	\N	2025-10-25 22:18:03.932648-06	2025-10-25 22:18:03.933401-06	\N	2	5	1
+5	Evento con IDs enteros	Descripción actualizada para probar auditoría de actualización	19.450000	-99.140000	300	2025-10-25 21:30:00-06	2025-10-25 21:30:00-06	\N	\N	\N	\N	\N	2648f634-1aee-43e3-8beb-6efbcaded18a	7	usuario_prueba	7	usuario_prueba	2025-10-25 22:23:12.369591-06	2025-10-25 22:24:25.948976-06	\N	2	5	1
+6	choque de trailer	trailer atravezado en la calle	-12.000000	-77.000000	100	2025-10-25 22:34:00-06	2025-10-26 22:34:00-06	\N	\N	\N	\N	\N	f80d55ba-0fcd-4e47-ada2-4d869e197a12	1	admin	\N	\N	2025-10-25 22:35:02.41715-06	2025-10-25 22:35:02.417616-06	\N	2	2	1
+\.
+
+
+--
+-- Data for Name: nivel_gravedad; Type: TABLE DATA; Schema: public; Owner: admin_user
+--
+
+COPY public.nivel_gravedad (id, codigo, nombre, orden, creado_en, actualizado_en) FROM stdin;
+2	BAJO	Crítica	5	2025-10-25 13:27:57.867995-06	2025-10-25 13:27:57.868234-06
+5	MEDIO	Gravedad Baja	1	2025-10-25 13:41:19.336436-06	2025-10-25 13:41:19.336678-06
+13	ALTO	muy bajo	1	2025-10-25 14:03:14.942118-06	2025-10-25 14:03:14.942495-06
+\.
+
+
+--
+-- Data for Name: tipo_evento; Type: TABLE DATA; Schema: public; Owner: admin_user
+--
+
+COPY public.tipo_evento (id, codigo, nombre, descripcion, activo, creado_en, actualizado_en) FROM stdin;
+1	ACC	Accidente	Accidente de tráfico	t	2025-10-25 11:15:22.104249-06	2025-10-25 11:15:22.119521-06
+2	CON	Construcción	Trabajos de construcción	t	2025-10-25 11:15:22.123158-06	2025-10-25 11:15:22.123365-06
+3	CA	Caida de arbol		t	2025-10-25 11:17:12.447712-06	2025-10-25 11:17:12.448019-06
+4	EMER	Situación de Emergencia	Eventos que requieren atención inmediata	t	2025-10-25 13:32:56.855019-06	2025-10-25 13:32:56.855231-06
+5	DER	Derrumbe		t	2025-10-25 13:34:37.140485-06	2025-10-25 13:34:37.14097-06
+\.
+
+
+--
+-- Name: django_migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin_user
+--
+
+SELECT pg_catalog.setval('public.django_migrations_id_seq', 20, true);
+
+
+--
+-- Name: estado_evento_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin_user
+--
+
+SELECT pg_catalog.setval('public.estado_evento_id_seq', 6, true);
+
+
+--
+-- Name: evento_ruta_afectada_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin_user
+--
+
+SELECT pg_catalog.setval('public.evento_ruta_afectada_id_seq', 1, false);
+
+
+--
+-- Name: evento_trafico_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin_user
+--
+
+SELECT pg_catalog.setval('public.evento_trafico_id_seq', 6, true);
+
+
+--
+-- Name: nivel_gravedad_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin_user
+--
+
+SELECT pg_catalog.setval('public.nivel_gravedad_id_seq', 16, true);
+
+
+--
+-- Name: tipo_evento_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin_user
+--
+
+SELECT pg_catalog.setval('public.tipo_evento_id_seq', 6, true);
+
+
+--
+-- Name: django_migrations django_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.django_migrations
+    ADD CONSTRAINT django_migrations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: estado_evento estado_evento_codigo_key; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.estado_evento
+    ADD CONSTRAINT estado_evento_codigo_key UNIQUE (codigo);
+
+
+--
+-- Name: estado_evento estado_evento_pkey; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.estado_evento
+    ADD CONSTRAINT estado_evento_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: evento_ruta_afectada evento_ruta_afectada_evento_id_sistema_origen_0acf55d4_uniq; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.evento_ruta_afectada
+    ADD CONSTRAINT evento_ruta_afectada_evento_id_sistema_origen_0acf55d4_uniq UNIQUE (evento_id, sistema_origen, ruta_id_externo);
+
+
+--
+-- Name: evento_ruta_afectada evento_ruta_afectada_pkey; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.evento_ruta_afectada
+    ADD CONSTRAINT evento_ruta_afectada_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: evento_trafico evento_trafico_pkey; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.evento_trafico
+    ADD CONSTRAINT evento_trafico_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: nivel_gravedad nivel_gravedad_codigo_key; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.nivel_gravedad
+    ADD CONSTRAINT nivel_gravedad_codigo_key UNIQUE (codigo);
+
+
+--
+-- Name: nivel_gravedad nivel_gravedad_pkey; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.nivel_gravedad
+    ADD CONSTRAINT nivel_gravedad_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: tipo_evento tipo_evento_codigo_key; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.tipo_evento
+    ADD CONSTRAINT tipo_evento_codigo_key UNIQUE (codigo);
+
+
+--
+-- Name: tipo_evento tipo_evento_pkey; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.tipo_evento
+    ADD CONSTRAINT tipo_evento_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: estado_even_codigo_5f531c_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX estado_even_codigo_5f531c_idx ON public.estado_evento USING btree (codigo);
+
+
+--
+-- Name: estado_evento_codigo_3d93a0b5_like; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX estado_evento_codigo_3d93a0b5_like ON public.estado_evento USING btree (codigo varchar_pattern_ops);
+
+
+--
+-- Name: evento_ruta_afectada_evento_id_929d21eb; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX evento_ruta_afectada_evento_id_929d21eb ON public.evento_ruta_afectada USING btree (evento_id);
+
+
+--
+-- Name: evento_ruta_evento__ec847f_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX evento_ruta_evento__ec847f_idx ON public.evento_ruta_afectada USING btree (evento_id);
+
+
+--
+-- Name: evento_ruta_relevan_820be0_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX evento_ruta_relevan_820be0_idx ON public.evento_ruta_afectada USING btree (relevancia);
+
+
+--
+-- Name: evento_ruta_ruta_co_7b55ec_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX evento_ruta_ruta_co_7b55ec_idx ON public.evento_ruta_afectada USING btree (ruta_codigo);
+
+
+--
+-- Name: evento_ruta_sistema_502bb6_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX evento_ruta_sistema_502bb6_idx ON public.evento_ruta_afectada USING btree (sistema_origen, ruta_id_externo);
+
+
+--
+-- Name: evento_traf_correla_5388a7_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX evento_traf_correla_5388a7_idx ON public.evento_trafico USING btree (correlacion_id);
+
+
+--
+-- Name: evento_traf_elimina_d5d5fa_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX evento_traf_elimina_d5d5fa_idx ON public.evento_trafico USING btree (eliminado_en);
+
+
+--
+-- Name: evento_traf_estado__03c98c_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX evento_traf_estado__03c98c_idx ON public.evento_trafico USING btree (estado_id);
+
+
+--
+-- Name: evento_traf_fecha_o_7b2e94_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX evento_traf_fecha_o_7b2e94_idx ON public.evento_trafico USING btree (fecha_ocurrencia);
+
+
+--
+-- Name: evento_traf_fecha_r_a163fc_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX evento_traf_fecha_r_a163fc_idx ON public.evento_trafico USING btree (fecha_reporte);
+
+
+--
+-- Name: evento_traf_graveda_655ff4_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX evento_traf_graveda_655ff4_idx ON public.evento_trafico USING btree (gravedad_id);
+
+
+--
+-- Name: evento_traf_latitud_3313c0_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX evento_traf_latitud_3313c0_idx ON public.evento_trafico USING btree (latitud, longitud);
+
+
+--
+-- Name: evento_traf_tipo_id_8e77ff_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX evento_traf_tipo_id_8e77ff_idx ON public.evento_trafico USING btree (tipo_id);
+
+
+--
+-- Name: evento_traf_vehicul_57a3f0_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX evento_traf_vehicul_57a3f0_idx ON public.evento_trafico USING btree (vehiculo_id_externo);
+
+
+--
+-- Name: evento_traf_viaje_i_a297b6_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX evento_traf_viaje_i_a297b6_idx ON public.evento_trafico USING btree (viaje_id_externo);
+
+
+--
+-- Name: evento_trafico_estado_id_8e5e9d1d; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX evento_trafico_estado_id_8e5e9d1d ON public.evento_trafico USING btree (estado_id);
+
+
+--
+-- Name: evento_trafico_gravedad_id_3d2043c2; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX evento_trafico_gravedad_id_3d2043c2 ON public.evento_trafico USING btree (gravedad_id);
+
+
+--
+-- Name: evento_trafico_tipo_id_dd29038f; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX evento_trafico_tipo_id_dd29038f ON public.evento_trafico USING btree (tipo_id);
+
+
+--
+-- Name: nivel_grave_codigo_e08f2d_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX nivel_grave_codigo_e08f2d_idx ON public.nivel_gravedad USING btree (codigo);
+
+
+--
+-- Name: nivel_grave_orden_c557b6_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX nivel_grave_orden_c557b6_idx ON public.nivel_gravedad USING btree (orden);
+
+
+--
+-- Name: nivel_gravedad_codigo_070aa497_like; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX nivel_gravedad_codigo_070aa497_like ON public.nivel_gravedad USING btree (codigo varchar_pattern_ops);
+
+
+--
+-- Name: tipo_evento_activo_432b5b_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX tipo_evento_activo_432b5b_idx ON public.tipo_evento USING btree (activo);
+
+
+--
+-- Name: tipo_evento_codigo_b80c1b_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX tipo_evento_codigo_b80c1b_idx ON public.tipo_evento USING btree (codigo);
+
+
+--
+-- Name: tipo_evento_codigo_bcc5e2a7_like; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX tipo_evento_codigo_bcc5e2a7_like ON public.tipo_evento USING btree (codigo varchar_pattern_ops);
+
+
+--
+-- Name: evento_ruta_afectada evento_ruta_afectada_evento_id_929d21eb_fk_evento_trafico_id; Type: FK CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.evento_ruta_afectada
+    ADD CONSTRAINT evento_ruta_afectada_evento_id_929d21eb_fk_evento_trafico_id FOREIGN KEY (evento_id) REFERENCES public.evento_trafico(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: evento_trafico evento_trafico_estado_id_8e5e9d1d_fk_estado_evento_id; Type: FK CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.evento_trafico
+    ADD CONSTRAINT evento_trafico_estado_id_8e5e9d1d_fk_estado_evento_id FOREIGN KEY (estado_id) REFERENCES public.estado_evento(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: evento_trafico evento_trafico_gravedad_id_3d2043c2_fk_nivel_gravedad_id; Type: FK CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.evento_trafico
+    ADD CONSTRAINT evento_trafico_gravedad_id_3d2043c2_fk_nivel_gravedad_id FOREIGN KEY (gravedad_id) REFERENCES public.nivel_gravedad(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: evento_trafico evento_trafico_tipo_id_dd29038f_fk_tipo_evento_id; Type: FK CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.evento_trafico
+    ADD CONSTRAINT evento_trafico_tipo_id_dd29038f_fk_tipo_evento_id FOREIGN KEY (tipo_id) REFERENCES public.tipo_evento(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+--
+-- Database "postgres" dump
+--
+
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 16.8
+-- Dumped by pg_dump version 16.8
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+DROP DATABASE postgres;
+--
+-- Name: postgres; Type: DATABASE; Schema: -; Owner: admin_user
+--
+
+CREATE DATABASE postgres WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE_PROVIDER = libc LOCALE = 'C';
+
+
+ALTER DATABASE postgres OWNER TO admin_user;
+
+\connect postgres
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: DATABASE postgres; Type: COMMENT; Schema: -; Owner: admin_user
+--
+
+COMMENT ON DATABASE postgres IS 'default administrative connection database';
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+--
+-- Database "rutas_viajes" dump
+--
+
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 16.8
+-- Dumped by pg_dump version 16.8
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: rutas_viajes; Type: DATABASE; Schema: -; Owner: admin_user
+--
+
+CREATE DATABASE rutas_viajes WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE_PROVIDER = libc LOCALE = 'C';
+
+
+ALTER DATABASE rutas_viajes OWNER TO admin_user;
+
+\connect rutas_viajes
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- Name: asignacion_autobus_ruta; Type: TABLE; Schema: public; Owner: admin_user
+--
+
+CREATE TABLE public.asignacion_autobus_ruta (
+    id bigint NOT NULL,
+    fecha date NOT NULL,
+    hora_inicio time without time zone NOT NULL,
+    hora_fin time without time zone NOT NULL,
+    estado character varying(16) NOT NULL,
+    creado_en timestamp with time zone NOT NULL,
+    actualizado_en timestamp with time zone NOT NULL,
+    autobus_id bigint NOT NULL,
+    piloto_id bigint NOT NULL,
+    ruta_id bigint NOT NULL
+);
+
+
+ALTER TABLE public.asignacion_autobus_ruta OWNER TO admin_user;
+
+--
+-- Name: asignacion_autobus_ruta_id_seq; Type: SEQUENCE; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE public.asignacion_autobus_ruta ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.asignacion_autobus_ruta_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: autobus; Type: TABLE; Schema: public; Owner: admin_user
+--
+
+CREATE TABLE public.autobus (
+    id bigint NOT NULL,
+    codigo character varying(32) NOT NULL,
+    placa character varying(16) NOT NULL,
+    capacidad integer NOT NULL,
+    activo boolean NOT NULL,
+    creado_en timestamp with time zone NOT NULL,
+    actualizado_en timestamp with time zone NOT NULL,
+    empresa_id bigint NOT NULL,
+    CONSTRAINT autobus_capacidad_check CHECK ((capacidad >= 0))
+);
+
+
+ALTER TABLE public.autobus OWNER TO admin_user;
+
+--
+-- Name: autobus_id_seq; Type: SEQUENCE; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE public.autobus ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.autobus_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: django_migrations; Type: TABLE; Schema: public; Owner: admin_user
+--
+
+CREATE TABLE public.django_migrations (
+    id bigint NOT NULL,
+    app character varying(255) NOT NULL,
+    name character varying(255) NOT NULL,
+    applied timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE public.django_migrations OWNER TO admin_user;
+
+--
+-- Name: django_migrations_id_seq; Type: SEQUENCE; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE public.django_migrations ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.django_migrations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: empresa_transporte; Type: TABLE; Schema: public; Owner: admin_user
+--
+
+CREATE TABLE public.empresa_transporte (
+    id bigint NOT NULL,
+    nombre character varying(120) NOT NULL,
+    codigo character varying(32) NOT NULL,
+    contacto character varying(120) NOT NULL,
+    telefono character varying(32) NOT NULL,
+    activo boolean NOT NULL,
+    creado_en timestamp with time zone NOT NULL,
+    actualizado_en timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE public.empresa_transporte OWNER TO admin_user;
+
+--
+-- Name: empresa_transporte_id_seq; Type: SEQUENCE; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE public.empresa_transporte ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.empresa_transporte_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: parada; Type: TABLE; Schema: public; Owner: admin_user
+--
+
+CREATE TABLE public.parada (
+    id bigint NOT NULL,
+    nombre character varying(120) NOT NULL,
+    orden integer NOT NULL,
+    sentido character varying(16) NOT NULL,
+    latitud numeric(9,6) NOT NULL,
+    longitud numeric(9,6) NOT NULL,
+    activo boolean NOT NULL,
+    creado_en timestamp with time zone NOT NULL,
+    actualizado_en timestamp with time zone NOT NULL,
+    ruta_id bigint NOT NULL,
+    CONSTRAINT parada_orden_check CHECK ((orden >= 0))
+);
+
+
+ALTER TABLE public.parada OWNER TO admin_user;
+
+--
+-- Name: parada_id_seq; Type: SEQUENCE; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE public.parada ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.parada_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: piloto; Type: TABLE; Schema: public; Owner: admin_user
+--
+
+CREATE TABLE public.piloto (
+    id bigint NOT NULL,
+    nombre character varying(120) NOT NULL,
+    documento character varying(32) NOT NULL,
+    licencia_numero character varying(32) NOT NULL,
+    licencia_categoria character varying(16) NOT NULL,
+    telefono character varying(32) NOT NULL,
+    activo boolean NOT NULL,
+    creado_en timestamp with time zone NOT NULL,
+    actualizado_en timestamp with time zone NOT NULL,
+    empresa_id bigint NOT NULL
+);
+
+
+ALTER TABLE public.piloto OWNER TO admin_user;
+
+--
+-- Name: piloto_id_seq; Type: SEQUENCE; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE public.piloto ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.piloto_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: posicion_autobus; Type: TABLE; Schema: public; Owner: admin_user
+--
+
+CREATE TABLE public.posicion_autobus (
+    id bigint NOT NULL,
+    latitud numeric(9,6) NOT NULL,
+    longitud numeric(9,6) NOT NULL,
+    velocidad_kmh numeric(6,2),
+    rumbo_grados numeric(5,1),
+    precision_m numeric(6,2),
+    fuente character varying(24) NOT NULL,
+    capturado_en timestamp with time zone NOT NULL,
+    recibido_en timestamp with time zone NOT NULL,
+    creado_en timestamp with time zone NOT NULL,
+    autobus_id bigint NOT NULL,
+    viaje_id bigint NOT NULL
+);
+
+
+ALTER TABLE public.posicion_autobus OWNER TO admin_user;
+
+--
+-- Name: posicion_autobus_id_seq; Type: SEQUENCE; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE public.posicion_autobus ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.posicion_autobus_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: ruta; Type: TABLE; Schema: public; Owner: admin_user
+--
+
+CREATE TABLE public.ruta (
+    id bigint NOT NULL,
+    codigo character varying(32) NOT NULL,
+    nombre character varying(120) NOT NULL,
+    descripcion text NOT NULL,
+    activo boolean NOT NULL,
+    creado_en timestamp with time zone NOT NULL,
+    actualizado_en timestamp with time zone NOT NULL,
+    empresa_id bigint NOT NULL
+);
+
+
+ALTER TABLE public.ruta OWNER TO admin_user;
+
+--
+-- Name: ruta_geopunto; Type: TABLE; Schema: public; Owner: admin_user
+--
+
+CREATE TABLE public.ruta_geopunto (
+    id bigint NOT NULL,
+    orden integer NOT NULL,
+    latitud numeric(9,6) NOT NULL,
+    longitud numeric(9,6) NOT NULL,
+    ruta_id bigint NOT NULL,
+    CONSTRAINT ruta_geopunto_orden_check CHECK ((orden >= 0))
+);
+
+
+ALTER TABLE public.ruta_geopunto OWNER TO admin_user;
+
+--
+-- Name: ruta_geopunto_id_seq; Type: SEQUENCE; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE public.ruta_geopunto ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.ruta_geopunto_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: ruta_id_seq; Type: SEQUENCE; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE public.ruta ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.ruta_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: viaje_autobus; Type: TABLE; Schema: public; Owner: admin_user
+--
+
+CREATE TABLE public.viaje_autobus (
+    id bigint NOT NULL,
+    numero_viaje integer NOT NULL,
+    estado character varying(16) NOT NULL,
+    inicio_en timestamp with time zone,
+    fin_en timestamp with time zone,
+    distancia_km numeric(8,3),
+    duracion_min integer,
+    velocidad_media_kmh numeric(6,2),
+    creado_en timestamp with time zone NOT NULL,
+    actualizado_en timestamp with time zone NOT NULL,
+    asignacion_id bigint NOT NULL,
+    autobus_id bigint NOT NULL,
+    parada_fin_id bigint,
+    parada_inicio_id bigint,
+    piloto_id bigint NOT NULL,
+    ruta_id bigint NOT NULL,
+    CONSTRAINT viaje_autobus_duracion_min_check CHECK ((duracion_min >= 0)),
+    CONSTRAINT viaje_autobus_numero_viaje_check CHECK ((numero_viaje >= 0))
+);
+
+
+ALTER TABLE public.viaje_autobus OWNER TO admin_user;
+
+--
+-- Name: viaje_autobus_id_seq; Type: SEQUENCE; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE public.viaje_autobus ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.viaje_autobus_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Data for Name: asignacion_autobus_ruta; Type: TABLE DATA; Schema: public; Owner: admin_user
+--
+
+COPY public.asignacion_autobus_ruta (id, fecha, hora_inicio, hora_fin, estado, creado_en, actualizado_en, autobus_id, piloto_id, ruta_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: autobus; Type: TABLE DATA; Schema: public; Owner: admin_user
+--
+
+COPY public.autobus (id, codigo, placa, capacidad, activo, creado_en, actualizado_en, empresa_id) FROM stdin;
+1	BUS001	P123-456	45	t	2025-10-25 17:51:57.886701-06	2025-10-25 17:51:57.886937-06	1
+2	BUS002	P456-DEF	45	t	2025-10-25 18:51:24.434122-06	2025-10-25 18:51:24.434608-06	2
+3	232423	EWREWREWER	23	t	2025-10-25 19:53:36.078674-06	2025-10-25 19:53:36.078987-06	3
+\.
+
+
+--
+-- Data for Name: django_migrations; Type: TABLE DATA; Schema: public; Owner: admin_user
+--
+
+COPY public.django_migrations (id, app, name, applied) FROM stdin;
+1	microservicios_rutas_viajes	0001_initial	2025-10-25 17:44:46.232737-06
+\.
+
+
+--
+-- Data for Name: empresa_transporte; Type: TABLE DATA; Schema: public; Owner: admin_user
+--
+
+COPY public.empresa_transporte (id, nombre, codigo, contacto, telefono, activo, creado_en, actualizado_en) FROM stdin;
+1	Transportes MOP S.A.	MOP001	Juan Pérez	2234-5678	t	2025-10-25 17:51:57.858568-06	2025-10-25 17:51:57.878526-06
+2	Transporte Urbano Guatemala	TRANS001	Juan Pérez	+502-2334-5678	t	2025-10-25 18:48:21.846699-06	2025-10-25 18:48:21.847055-06
+3	La experanza	003	Juan Valdez	73659816	t	2025-10-25 19:26:05.77291-06	2025-10-25 19:26:05.77335-06
+\.
+
+
+--
+-- Data for Name: parada; Type: TABLE DATA; Schema: public; Owner: admin_user
+--
+
+COPY public.parada (id, nombre, orden, sentido, latitud, longitud, activo, creado_en, actualizado_en, ruta_id) FROM stdin;
+1	Parque Central	1	IDA	14.640521	-90.513197	t	2025-10-25 18:52:15.89286-06	2025-10-25 18:52:15.893287-06	2
+\.
+
+
+--
+-- Data for Name: piloto; Type: TABLE DATA; Schema: public; Owner: admin_user
+--
+
+COPY public.piloto (id, nombre, documento, licencia_numero, licencia_categoria, telefono, activo, creado_en, actualizado_en, empresa_id) FROM stdin;
+1	Carlos Rodriguez	12345678-9	LIC123456	D	7890-1234	t	2025-10-25 17:51:57.882711-06	2025-10-25 17:51:57.882997-06	1
+3	Juan Valdez	048958865	wq121231212	12	121212	t	2025-10-25 19:29:29.069893-06	2025-10-25 19:29:29.070391-06	1
+4	Juan Perez	048958865	1213213	1	123132123	t	2025-10-25 19:45:03.023129-06	2025-10-25 19:45:03.023524-06	3
+\.
+
+
+--
+-- Data for Name: posicion_autobus; Type: TABLE DATA; Schema: public; Owner: admin_user
+--
+
+COPY public.posicion_autobus (id, latitud, longitud, velocidad_kmh, rumbo_grados, precision_m, fuente, capturado_en, recibido_en, creado_en, autobus_id, viaje_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: ruta; Type: TABLE DATA; Schema: public; Owner: admin_user
+--
+
+COPY public.ruta (id, codigo, nombre, descripcion, activo, creado_en, actualizado_en, empresa_id) FROM stdin;
+1	R001	Ruta Centro - Zona Industrial	Conecta el centro de la ciudad con la zona industrial	t	2025-10-25 17:51:57.891107-06	2025-10-25 17:51:57.891408-06	1
+2	R101	Centro - Zone 18	Ruta que conecta el centro histórico con la Zona 18	t	2025-10-25 18:51:40.322942-06	2025-10-25 18:51:40.323354-06	2
+3	44	ruta 44 - A	23232	t	2025-10-25 19:54:13.16647-06	2025-10-25 19:54:13.166757-06	3
+\.
+
+
+--
+-- Data for Name: ruta_geopunto; Type: TABLE DATA; Schema: public; Owner: admin_user
+--
+
+COPY public.ruta_geopunto (id, orden, latitud, longitud, ruta_id) FROM stdin;
+1	1	14.640521	-90.513197	2
+\.
+
+
+--
+-- Data for Name: viaje_autobus; Type: TABLE DATA; Schema: public; Owner: admin_user
+--
+
+COPY public.viaje_autobus (id, numero_viaje, estado, inicio_en, fin_en, distancia_km, duracion_min, velocidad_media_kmh, creado_en, actualizado_en, asignacion_id, autobus_id, parada_fin_id, parada_inicio_id, piloto_id, ruta_id) FROM stdin;
+\.
+
+
+--
+-- Name: asignacion_autobus_ruta_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin_user
+--
+
+SELECT pg_catalog.setval('public.asignacion_autobus_ruta_id_seq', 1, true);
+
+
+--
+-- Name: autobus_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin_user
+--
+
+SELECT pg_catalog.setval('public.autobus_id_seq', 3, true);
+
+
+--
+-- Name: django_migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin_user
+--
+
+SELECT pg_catalog.setval('public.django_migrations_id_seq', 1, true);
+
+
+--
+-- Name: empresa_transporte_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin_user
+--
+
+SELECT pg_catalog.setval('public.empresa_transporte_id_seq', 3, true);
+
+
+--
+-- Name: parada_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin_user
+--
+
+SELECT pg_catalog.setval('public.parada_id_seq', 1, true);
+
+
+--
+-- Name: piloto_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin_user
+--
+
+SELECT pg_catalog.setval('public.piloto_id_seq', 4, true);
+
+
+--
+-- Name: posicion_autobus_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin_user
+--
+
+SELECT pg_catalog.setval('public.posicion_autobus_id_seq', 1, true);
+
+
+--
+-- Name: ruta_geopunto_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin_user
+--
+
+SELECT pg_catalog.setval('public.ruta_geopunto_id_seq', 1, true);
+
+
+--
+-- Name: ruta_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin_user
+--
+
+SELECT pg_catalog.setval('public.ruta_id_seq', 3, true);
+
+
+--
+-- Name: viaje_autobus_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin_user
+--
+
+SELECT pg_catalog.setval('public.viaje_autobus_id_seq', 1, true);
+
+
+--
+-- Name: asignacion_autobus_ruta asignacion_autobus_ruta_autobus_id_fecha_hora_in_2a7896cb_uniq; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.asignacion_autobus_ruta
+    ADD CONSTRAINT asignacion_autobus_ruta_autobus_id_fecha_hora_in_2a7896cb_uniq UNIQUE (autobus_id, fecha, hora_inicio);
+
+
+--
+-- Name: asignacion_autobus_ruta asignacion_autobus_ruta_pkey; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.asignacion_autobus_ruta
+    ADD CONSTRAINT asignacion_autobus_ruta_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: autobus autobus_codigo_key; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.autobus
+    ADD CONSTRAINT autobus_codigo_key UNIQUE (codigo);
+
+
+--
+-- Name: autobus autobus_pkey; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.autobus
+    ADD CONSTRAINT autobus_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: autobus autobus_placa_key; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.autobus
+    ADD CONSTRAINT autobus_placa_key UNIQUE (placa);
+
+
+--
+-- Name: django_migrations django_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.django_migrations
+    ADD CONSTRAINT django_migrations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: empresa_transporte empresa_transporte_codigo_key; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.empresa_transporte
+    ADD CONSTRAINT empresa_transporte_codigo_key UNIQUE (codigo);
+
+
+--
+-- Name: empresa_transporte empresa_transporte_pkey; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.empresa_transporte
+    ADD CONSTRAINT empresa_transporte_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: parada parada_pkey; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.parada
+    ADD CONSTRAINT parada_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: piloto piloto_pkey; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.piloto
+    ADD CONSTRAINT piloto_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: posicion_autobus posicion_autobus_pkey; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.posicion_autobus
+    ADD CONSTRAINT posicion_autobus_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ruta ruta_codigo_key; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.ruta
+    ADD CONSTRAINT ruta_codigo_key UNIQUE (codigo);
+
+
+--
+-- Name: ruta_geopunto ruta_geopunto_pkey; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.ruta_geopunto
+    ADD CONSTRAINT ruta_geopunto_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ruta_geopunto ruta_geopunto_ruta_id_orden_25402e6f_uniq; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.ruta_geopunto
+    ADD CONSTRAINT ruta_geopunto_ruta_id_orden_25402e6f_uniq UNIQUE (ruta_id, orden);
+
+
+--
+-- Name: ruta ruta_pkey; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.ruta
+    ADD CONSTRAINT ruta_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: viaje_autobus viaje_autobus_asignacion_id_numero_viaje_6ce1e16d_uniq; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.viaje_autobus
+    ADD CONSTRAINT viaje_autobus_asignacion_id_numero_viaje_6ce1e16d_uniq UNIQUE (asignacion_id, numero_viaje);
+
+
+--
+-- Name: viaje_autobus viaje_autobus_pkey; Type: CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.viaje_autobus
+    ADD CONSTRAINT viaje_autobus_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: asignacion__autobus_0e19a5_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX asignacion__autobus_0e19a5_idx ON public.asignacion_autobus_ruta USING btree (autobus_id, fecha);
+
+
+--
+-- Name: asignacion__fecha_9e482c_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX asignacion__fecha_9e482c_idx ON public.asignacion_autobus_ruta USING btree (fecha, estado);
+
+
+--
+-- Name: asignacion__piloto__a8f074_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX asignacion__piloto__a8f074_idx ON public.asignacion_autobus_ruta USING btree (piloto_id, fecha);
+
+
+--
+-- Name: asignacion__ruta_id_570874_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX asignacion__ruta_id_570874_idx ON public.asignacion_autobus_ruta USING btree (ruta_id, fecha);
+
+
+--
+-- Name: asignacion_autobus_ruta_autobus_id_64395eef; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX asignacion_autobus_ruta_autobus_id_64395eef ON public.asignacion_autobus_ruta USING btree (autobus_id);
+
+
+--
+-- Name: asignacion_autobus_ruta_piloto_id_fd84a333; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX asignacion_autobus_ruta_piloto_id_fd84a333 ON public.asignacion_autobus_ruta USING btree (piloto_id);
+
+
+--
+-- Name: asignacion_autobus_ruta_ruta_id_0cef946c; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX asignacion_autobus_ruta_ruta_id_0cef946c ON public.asignacion_autobus_ruta USING btree (ruta_id);
+
+
+--
+-- Name: autobus_codigo_63adea_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX autobus_codigo_63adea_idx ON public.autobus USING btree (codigo);
+
+
+--
+-- Name: autobus_codigo_eebd3613_like; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX autobus_codigo_eebd3613_like ON public.autobus USING btree (codigo varchar_pattern_ops);
+
+
+--
+-- Name: autobus_empresa_af2493_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX autobus_empresa_af2493_idx ON public.autobus USING btree (empresa_id, activo);
+
+
+--
+-- Name: autobus_empresa_id_0ae4a3fe; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX autobus_empresa_id_0ae4a3fe ON public.autobus USING btree (empresa_id);
+
+
+--
+-- Name: autobus_placa_4c0932_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX autobus_placa_4c0932_idx ON public.autobus USING btree (placa);
+
+
+--
+-- Name: autobus_placa_60ad2cdf_like; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX autobus_placa_60ad2cdf_like ON public.autobus USING btree (placa varchar_pattern_ops);
+
+
+--
+-- Name: empresa_tra_activo_219b52_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX empresa_tra_activo_219b52_idx ON public.empresa_transporte USING btree (activo);
+
+
+--
+-- Name: empresa_tra_codigo_00500b_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX empresa_tra_codigo_00500b_idx ON public.empresa_transporte USING btree (codigo);
+
+
+--
+-- Name: empresa_tra_nombre_62f3d0_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX empresa_tra_nombre_62f3d0_idx ON public.empresa_transporte USING btree (nombre);
+
+
+--
+-- Name: empresa_transporte_codigo_1ff29b2f_like; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX empresa_transporte_codigo_1ff29b2f_like ON public.empresa_transporte USING btree (codigo varchar_pattern_ops);
+
+
+--
+-- Name: parada_activo_ab7555_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX parada_activo_ab7555_idx ON public.parada USING btree (activo);
+
+
+--
+-- Name: parada_latitud_9fd4c1_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX parada_latitud_9fd4c1_idx ON public.parada USING btree (latitud, longitud);
+
+
+--
+-- Name: parada_ruta_id_4defedba; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX parada_ruta_id_4defedba ON public.parada USING btree (ruta_id);
+
+
+--
+-- Name: parada_ruta_id_bc9f8c_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX parada_ruta_id_bc9f8c_idx ON public.parada USING btree (ruta_id, sentido, orden);
+
+
+--
+-- Name: piloto_documen_d18f9b_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX piloto_documen_d18f9b_idx ON public.piloto USING btree (documento);
+
+
+--
+-- Name: piloto_empresa_313961_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX piloto_empresa_313961_idx ON public.piloto USING btree (empresa_id, activo);
+
+
+--
+-- Name: piloto_empresa_id_7f76b4b8; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX piloto_empresa_id_7f76b4b8 ON public.piloto USING btree (empresa_id);
+
+
+--
+-- Name: piloto_licenci_d891e1_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX piloto_licenci_d891e1_idx ON public.piloto USING btree (licencia_numero);
+
+
+--
+-- Name: posicion_au_autobus_7f713a_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX posicion_au_autobus_7f713a_idx ON public.posicion_autobus USING btree (autobus_id, capturado_en);
+
+
+--
+-- Name: posicion_au_captura_51ba03_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX posicion_au_captura_51ba03_idx ON public.posicion_autobus USING btree (capturado_en);
+
+
+--
+-- Name: posicion_au_latitud_e788f4_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX posicion_au_latitud_e788f4_idx ON public.posicion_autobus USING btree (latitud, longitud);
+
+
+--
+-- Name: posicion_au_viaje_i_cd7bf0_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX posicion_au_viaje_i_cd7bf0_idx ON public.posicion_autobus USING btree (viaje_id, capturado_en);
+
+
+--
+-- Name: posicion_autobus_autobus_id_0b447cd8; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX posicion_autobus_autobus_id_0b447cd8 ON public.posicion_autobus USING btree (autobus_id);
+
+
+--
+-- Name: posicion_autobus_viaje_id_c2712f5b; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX posicion_autobus_viaje_id_c2712f5b ON public.posicion_autobus USING btree (viaje_id);
+
+
+--
+-- Name: ruta_codigo_711036_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX ruta_codigo_711036_idx ON public.ruta USING btree (codigo);
+
+
+--
+-- Name: ruta_codigo_8d8d3b25_like; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX ruta_codigo_8d8d3b25_like ON public.ruta USING btree (codigo varchar_pattern_ops);
+
+
+--
+-- Name: ruta_empresa_fefb6b_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX ruta_empresa_fefb6b_idx ON public.ruta USING btree (empresa_id, activo);
+
+
+--
+-- Name: ruta_empresa_id_5e57d76a; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX ruta_empresa_id_5e57d76a ON public.ruta USING btree (empresa_id);
+
+
+--
+-- Name: ruta_geopun_latitud_c3fe61_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX ruta_geopun_latitud_c3fe61_idx ON public.ruta_geopunto USING btree (latitud, longitud);
+
+
+--
+-- Name: ruta_geopun_ruta_id_de1a1c_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX ruta_geopun_ruta_id_de1a1c_idx ON public.ruta_geopunto USING btree (ruta_id, orden);
+
+
+--
+-- Name: ruta_geopunto_ruta_id_14d38479; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX ruta_geopunto_ruta_id_14d38479 ON public.ruta_geopunto USING btree (ruta_id);
+
+
+--
+-- Name: ruta_nombre_20fd38_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX ruta_nombre_20fd38_idx ON public.ruta USING btree (nombre);
+
+
+--
+-- Name: viaje_autob_asignac_71f8ef_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX viaje_autob_asignac_71f8ef_idx ON public.viaje_autobus USING btree (asignacion_id, numero_viaje);
+
+
+--
+-- Name: viaje_autob_autobus_e6ea94_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX viaje_autob_autobus_e6ea94_idx ON public.viaje_autobus USING btree (autobus_id, inicio_en);
+
+
+--
+-- Name: viaje_autob_estado_0f24d0_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX viaje_autob_estado_0f24d0_idx ON public.viaje_autobus USING btree (estado);
+
+
+--
+-- Name: viaje_autob_inicio__5ae81b_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX viaje_autob_inicio__5ae81b_idx ON public.viaje_autobus USING btree (inicio_en, fin_en);
+
+
+--
+-- Name: viaje_autob_ruta_id_5f2ba8_idx; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX viaje_autob_ruta_id_5f2ba8_idx ON public.viaje_autobus USING btree (ruta_id, inicio_en);
+
+
+--
+-- Name: viaje_autobus_asignacion_id_094b4304; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX viaje_autobus_asignacion_id_094b4304 ON public.viaje_autobus USING btree (asignacion_id);
+
+
+--
+-- Name: viaje_autobus_autobus_id_0d859c06; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX viaje_autobus_autobus_id_0d859c06 ON public.viaje_autobus USING btree (autobus_id);
+
+
+--
+-- Name: viaje_autobus_parada_fin_id_5655796e; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX viaje_autobus_parada_fin_id_5655796e ON public.viaje_autobus USING btree (parada_fin_id);
+
+
+--
+-- Name: viaje_autobus_parada_inicio_id_ebdbd2cc; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX viaje_autobus_parada_inicio_id_ebdbd2cc ON public.viaje_autobus USING btree (parada_inicio_id);
+
+
+--
+-- Name: viaje_autobus_piloto_id_5edaebf1; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX viaje_autobus_piloto_id_5edaebf1 ON public.viaje_autobus USING btree (piloto_id);
+
+
+--
+-- Name: viaje_autobus_ruta_id_fa1dd689; Type: INDEX; Schema: public; Owner: admin_user
+--
+
+CREATE INDEX viaje_autobus_ruta_id_fa1dd689 ON public.viaje_autobus USING btree (ruta_id);
+
+
+--
+-- Name: asignacion_autobus_ruta asignacion_autobus_ruta_autobus_id_64395eef_fk_autobus_id; Type: FK CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.asignacion_autobus_ruta
+    ADD CONSTRAINT asignacion_autobus_ruta_autobus_id_64395eef_fk_autobus_id FOREIGN KEY (autobus_id) REFERENCES public.autobus(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: asignacion_autobus_ruta asignacion_autobus_ruta_piloto_id_fd84a333_fk_piloto_id; Type: FK CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.asignacion_autobus_ruta
+    ADD CONSTRAINT asignacion_autobus_ruta_piloto_id_fd84a333_fk_piloto_id FOREIGN KEY (piloto_id) REFERENCES public.piloto(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: asignacion_autobus_ruta asignacion_autobus_ruta_ruta_id_0cef946c_fk_ruta_id; Type: FK CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.asignacion_autobus_ruta
+    ADD CONSTRAINT asignacion_autobus_ruta_ruta_id_0cef946c_fk_ruta_id FOREIGN KEY (ruta_id) REFERENCES public.ruta(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: autobus autobus_empresa_id_0ae4a3fe_fk_empresa_transporte_id; Type: FK CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.autobus
+    ADD CONSTRAINT autobus_empresa_id_0ae4a3fe_fk_empresa_transporte_id FOREIGN KEY (empresa_id) REFERENCES public.empresa_transporte(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: parada parada_ruta_id_4defedba_fk_ruta_id; Type: FK CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.parada
+    ADD CONSTRAINT parada_ruta_id_4defedba_fk_ruta_id FOREIGN KEY (ruta_id) REFERENCES public.ruta(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: piloto piloto_empresa_id_7f76b4b8_fk_empresa_transporte_id; Type: FK CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.piloto
+    ADD CONSTRAINT piloto_empresa_id_7f76b4b8_fk_empresa_transporte_id FOREIGN KEY (empresa_id) REFERENCES public.empresa_transporte(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: posicion_autobus posicion_autobus_autobus_id_0b447cd8_fk_autobus_id; Type: FK CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.posicion_autobus
+    ADD CONSTRAINT posicion_autobus_autobus_id_0b447cd8_fk_autobus_id FOREIGN KEY (autobus_id) REFERENCES public.autobus(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: posicion_autobus posicion_autobus_viaje_id_c2712f5b_fk_viaje_autobus_id; Type: FK CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.posicion_autobus
+    ADD CONSTRAINT posicion_autobus_viaje_id_c2712f5b_fk_viaje_autobus_id FOREIGN KEY (viaje_id) REFERENCES public.viaje_autobus(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: ruta ruta_empresa_id_5e57d76a_fk_empresa_transporte_id; Type: FK CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.ruta
+    ADD CONSTRAINT ruta_empresa_id_5e57d76a_fk_empresa_transporte_id FOREIGN KEY (empresa_id) REFERENCES public.empresa_transporte(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: ruta_geopunto ruta_geopunto_ruta_id_14d38479_fk_ruta_id; Type: FK CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.ruta_geopunto
+    ADD CONSTRAINT ruta_geopunto_ruta_id_14d38479_fk_ruta_id FOREIGN KEY (ruta_id) REFERENCES public.ruta(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: viaje_autobus viaje_autobus_asignacion_id_094b4304_fk_asignacio; Type: FK CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.viaje_autobus
+    ADD CONSTRAINT viaje_autobus_asignacion_id_094b4304_fk_asignacio FOREIGN KEY (asignacion_id) REFERENCES public.asignacion_autobus_ruta(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: viaje_autobus viaje_autobus_autobus_id_0d859c06_fk_autobus_id; Type: FK CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.viaje_autobus
+    ADD CONSTRAINT viaje_autobus_autobus_id_0d859c06_fk_autobus_id FOREIGN KEY (autobus_id) REFERENCES public.autobus(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: viaje_autobus viaje_autobus_parada_fin_id_5655796e_fk_parada_id; Type: FK CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.viaje_autobus
+    ADD CONSTRAINT viaje_autobus_parada_fin_id_5655796e_fk_parada_id FOREIGN KEY (parada_fin_id) REFERENCES public.parada(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: viaje_autobus viaje_autobus_parada_inicio_id_ebdbd2cc_fk_parada_id; Type: FK CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.viaje_autobus
+    ADD CONSTRAINT viaje_autobus_parada_inicio_id_ebdbd2cc_fk_parada_id FOREIGN KEY (parada_inicio_id) REFERENCES public.parada(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: viaje_autobus viaje_autobus_piloto_id_5edaebf1_fk_piloto_id; Type: FK CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.viaje_autobus
+    ADD CONSTRAINT viaje_autobus_piloto_id_5edaebf1_fk_piloto_id FOREIGN KEY (piloto_id) REFERENCES public.piloto(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: viaje_autobus viaje_autobus_ruta_id_fa1dd689_fk_ruta_id; Type: FK CONSTRAINT; Schema: public; Owner: admin_user
+--
+
+ALTER TABLE ONLY public.viaje_autobus
+    ADD CONSTRAINT viaje_autobus_ruta_id_fa1dd689_fk_ruta_id FOREIGN KEY (ruta_id) REFERENCES public.ruta(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+--
+-- PostgreSQL database cluster dump complete
+--
+
