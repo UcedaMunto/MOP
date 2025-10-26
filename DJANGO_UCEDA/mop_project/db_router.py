@@ -10,6 +10,7 @@ class DatabaseRouter:
 
     route_app_labels = {
         "microservicios_eventos": "eventos_trafico",
+        "microservicios_rutas_viajes": "rutas_viajes",
         # Aquí puedes agregar más apps y sus respectivas bases de datos
     }
 
@@ -27,7 +28,7 @@ class DatabaseRouter:
 
     def allow_relation(self, obj1, obj2, **hints):
         """Permitir relaciones si los modelos están en la misma app."""
-        db_set = {"default", "eventos_trafico"}
+        db_set = {"default", "eventos_trafico", "rutas_viajes"}
         if obj1._state.db in db_set and obj2._state.db in db_set:
             return True
         return None

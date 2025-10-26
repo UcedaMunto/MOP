@@ -85,6 +85,92 @@
     </div>
 </div>
 
+<!-- Divider entre Eventos y Transporte -->
+<hr class="my-5" style="border-top: 3px solid #dee2e6;">
+
+<!-- Sección de Gestión de Transporte -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="text-center mb-2">
+            <i class="bi bi-bus-front text-success"></i>
+            Gestión de Transporte Público
+        </h2>
+        <p class="text-center text-muted">Administrar empresas, conductores, vehículos y rutas</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Empresas de Transporte -->
+    <div class="col-lg-3 col-md-6">
+        <div class="card h-100 shadow-sm hover-card" data-table="empresas-transporte">
+            <div class="card-body text-center">
+                <i class="bi bi-building text-primary mb-3" style="font-size: 3rem;"></i>
+                <h5 class="card-title">Empresas de Transporte</h5>
+                <p class="card-text text-muted">Gestionar operadores de transporte</p>
+                <button class="btn btn-success btn-sm" onclick="showOptions('empresas-transporte', 'Empresas de Transporte')">
+                    Gestionar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pilotos -->
+    <div class="col-lg-3 col-md-6">
+        <div class="card h-100 shadow-sm hover-card" data-table="pilotos">
+            <div class="card-body text-center">
+                <i class="bi bi-person-badge text-warning mb-3" style="font-size: 3rem;"></i>
+                <h5 class="card-title">Pilotos</h5>
+                <p class="card-text text-muted">Gestionar conductores de autobús</p>
+                <button class="btn btn-success btn-sm" onclick="showOptions('pilotos', 'Pilotos')">
+                    Gestionar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Autobuses -->
+    <div class="col-lg-3 col-md-6">
+        <div class="card h-100 shadow-sm hover-card" data-table="autobuses">
+            <div class="card-body text-center">
+                <i class="bi bi-bus-front-fill text-info mb-3" style="font-size: 3rem;"></i>
+                <h5 class="card-title">Autobuses</h5>
+                <p class="card-text text-muted">Gestionar vehículos de transporte</p>
+                <button class="btn btn-success btn-sm" onclick="showOptions('autobuses', 'Autobuses')">
+                    Gestionar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rutas -->
+    <div class="col-lg-3 col-md-6">
+        <div class="card h-100 shadow-sm hover-card" data-table="rutas">
+            <div class="card-body text-center">
+                <i class="bi bi-map text-success mb-3" style="font-size: 3rem;"></i>
+                <h5 class="card-title">Rutas</h5>
+                <p class="card-text text-muted">Gestionar recorridos de transporte</p>
+                <button class="btn btn-success btn-sm" onclick="showOptions('rutas', 'Rutas')">
+                    Gestionar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Paradas -->
+    <div class="col-lg-3 col-md-6">
+        <div class="card h-100 shadow-sm hover-card" data-table="paradas">
+            <div class="card-body text-center">
+                <i class="bi bi-signpost-2 text-danger mb-3" style="font-size: 3rem;"></i>
+                <h5 class="card-title">Paradas</h5>
+                <p class="card-text text-muted">Gestionar paradas de autobús</p>
+                <button class="btn btn-success btn-sm" onclick="showOptions('paradas', 'Paradas')">
+                    Gestionar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modal para opciones CRUD -->
 <div class="modal fade" id="optionsModal" tabindex="-1">
     <div class="modal-dialog">
@@ -228,7 +314,13 @@
         'niveles-gravedad': 'niveles-gravedad/',
         'estados-evento': 'estados-evento/',
         'eventos': 'eventos/',
-        'rutas-afectadas': 'rutas-afectadas/'
+        'rutas-afectadas': 'rutas-afectadas/',
+        // Endpoints de transporte
+        'empresas-transporte': 'v1/rutas-viajes/empresas/',
+        'pilotos': 'v1/rutas-viajes/pilotos/',
+        'autobuses': 'v1/rutas-viajes/autobuses/',
+        'rutas': 'v1/rutas-viajes/rutas/',
+        'paradas': 'v1/rutas-viajes/paradas/'
     };
     
     // Configuración de campos para cada tabla
@@ -268,6 +360,61 @@
                 'ruta': 'Ruta',
                 'coordenadas': 'Coordenadas',
                 'descripcion_impacto': 'Descripción del Impacto'
+            }
+        },
+        // Configuraciones para transporte
+        'empresas-transporte': {
+            fields: ['nombre', 'codigo', 'contacto', 'telefono', 'activo'],
+            labels: {
+                'nombre': 'Nombre de la Empresa',
+                'codigo': 'Código',
+                'contacto': 'Persona de Contacto',
+                'telefono': 'Teléfono',
+                'activo': 'Activo'
+            }
+        },
+        'pilotos': {
+            fields: ['nombre', 'documento', 'licencia_numero', 'licencia_categoria', 'telefono', 'empresa', 'activo'],
+            labels: {
+                'nombre': 'Nombre Completo',
+                'documento': 'Documento de Identidad',
+                'licencia_numero': 'Número de Licencia',
+                'licencia_categoria': 'Categoría de Licencia',
+                'telefono': 'Teléfono',
+                'empresa': 'Empresa',
+                'activo': 'Activo'
+            }
+        },
+        'autobuses': {
+            fields: ['codigo', 'placa', 'capacidad', 'empresa', 'activo'],
+            labels: {
+                'codigo': 'Código del Autobús',
+                'placa': 'Placa',
+                'capacidad': 'Capacidad de Pasajeros',
+                'empresa': 'Empresa',
+                'activo': 'Activo'
+            }
+        },
+        'rutas': {
+            fields: ['codigo', 'nombre', 'descripcion', 'empresa', 'activo'],
+            labels: {
+                'codigo': 'Código de la Ruta',
+                'nombre': 'Nombre de la Ruta',
+                'descripcion': 'Descripción',
+                'empresa': 'Empresa',
+                'activo': 'Activo'
+            }
+        },
+        'paradas': {
+            fields: ['nombre', 'orden', 'sentido', 'latitud', 'longitud', 'ruta', 'activo'],
+            labels: {
+                'nombre': 'Nombre de la Parada',
+                'orden': 'Orden',
+                'sentido': 'Sentido',
+                'latitud': 'Latitud',
+                'longitud': 'Longitud',
+                'ruta': 'Ruta',
+                'activo': 'Activo'
             }
         }
     };
