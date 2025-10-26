@@ -427,7 +427,11 @@
     }
     
     function listItems() {
-        bootstrap.Modal.getInstance(document.getElementById('optionsModal')).hide();
+        const optionsModalInstance = bootstrap.Modal.getInstance(document.getElementById('optionsModal'));
+        if (optionsModalInstance) {
+            optionsModalInstance.hide();
+        }
+        cleanupModalBackdrop();
         
         document.getElementById('listModalTitle').textContent = `Lista de ${currentTitle}`;
         document.getElementById('loadingSpinner').style.display = 'block';
@@ -552,12 +556,20 @@
     }
     
     function createItem() {
-        bootstrap.Modal.getInstance(document.getElementById('optionsModal')).hide();
+        const optionsModalInstance = bootstrap.Modal.getInstance(document.getElementById('optionsModal'));
+        if (optionsModalInstance) {
+            optionsModalInstance.hide();
+        }
+        cleanupModalBackdrop();
         showForm('Crear ' + currentTitle);
     }
     
     function editItem(id) {
-        bootstrap.Modal.getInstance(document.getElementById('listModal')).hide();
+        const listModalInstance = bootstrap.Modal.getInstance(document.getElementById('listModal'));
+        if (listModalInstance) {
+            listModalInstance.hide();
+        }
+        cleanupModalBackdrop();
         
         // Obtener datos del item
         $.ajax({
@@ -583,6 +595,9 @@
         // Si estamos creando/editando eventos, necesitamos cargar los catálogos
         if (currentTable === 'eventos') {
             loadEventFormWithCatalogs(title, data);
+        } else if (currentTable === 'pilotos' || currentTable === 'autobuses' || currentTable === 'rutas') {
+            // Para pilotos, autobuses y rutas necesitamos cargar el catálogo de empresas
+            loadFormWithCompanyCatalog(title, data);
         } else {
             generateStandardForm(title, data);
         }
@@ -639,6 +654,41 @@
                     </div>
                 `;
             });
+    }
+    
+    function loadFormWithCompanyCatalog(title, data = null) {
+        // Mostrar indicador de carga
+        document.getElementById('formContent').innerHTML = `
+            <div class="text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando formulario...</span>
+                </div>
+                <p class="mt-2">Cargando opciones de empresas...</p>
+            </div>
+        `;
+        new bootstrap.Modal(document.getElementById('formModal')).show();
+        
+        // Cargar el catálogo de empresas
+        $.ajax({
+            url: API_BASE + endpoints['empresas-transporte'],
+            method: 'GET',
+            headers: getAuthHeaders()
+        })
+        .then(response => {
+            const empresas = response.results || response;
+            generateFormWithCompanies(title, data, empresas);
+        })
+        .catch(error => {
+            if (error.status === 401) {
+                handleAuthError();
+                return;
+            }
+            document.getElementById('formContent').innerHTML = `
+                <div class="alert alert-danger">
+                    Error al cargar las empresas: ${error.responseText || error.statusText}
+                </div>
+            `;
+        });
     }
     
     function generateEventForm(title, data, catalogs) {
@@ -780,6 +830,85 @@
         document.getElementById('formContent').innerHTML = html;
     }
     
+    function generateFormWithCompanies(title, data, empresas) {
+        const config = fieldConfigs[currentTable];
+        let html = '<form id="itemForm">';
+        
+        config.fields.forEach(field => {
+            const value = data ? (data[field] || '') : '';
+            const label = config.labels[field];
+            
+            if (field === 'empresa') {
+                html += `
+                    <div class="mb-3">
+                        <label for="${field}" class="form-label">${label} <span class="text-danger">*</span></label>
+                        <select class="form-control" id="${field}" name="${field}" required>
+                            <option value="">Seleccionar empresa...</option>
+                `;
+                empresas.forEach(empresa => {
+                    let selected = '';
+                    if (data && data.empresa) {
+                        // Manejar tanto si empresa viene como ID o como objeto
+                        const empresaId = typeof data.empresa === 'object' ? data.empresa.id : data.empresa;
+                        selected = (empresaId === empresa.id) ? 'selected' : '';
+                    }
+                    html += `<option value="${empresa.id}" ${selected}>${empresa.codigo} - ${empresa.nombre}</option>`;
+                });
+                html += `
+                        </select>
+                    </div>
+                `;
+            } else if (field === 'capacidad') {
+                html += `
+                    <div class="mb-3">
+                        <label for="${field}" class="form-label">${label} <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="${field}" name="${field}" 
+                               value="${value}" min="1" max="200" required>
+                        <div class="form-text">Capacidad de pasajeros (1-200)</div>
+                    </div>
+                `;
+            } else if (field === 'activo') {
+                html += `
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="${field}" name="${field}" 
+                                   ${value ? 'checked' : ''}>
+                            <label class="form-check-label" for="${field}">
+                                ${label}
+                            </label>
+                        </div>
+                    </div>
+                `;
+            } else if (field === 'descripcion') {
+                html += `
+                    <div class="mb-3">
+                        <label for="${field}" class="form-label">${label}</label>
+                        <textarea class="form-control" id="${field}" name="${field}" rows="3">${value}</textarea>
+                    </div>
+                `;
+            } else {
+                // Campos de texto normales
+                const isRequired = (field === 'nombre' || field === 'documento' || field === 'licencia_numero' || 
+                                   field === 'codigo' || field === 'placa');
+                html += `
+                    <div class="mb-3">
+                        <label for="${field}" class="form-label">${label}${isRequired ? ' <span class="text-danger">*</span>' : ''}</label>
+                        <input type="text" class="form-control" id="${field}" name="${field}" value="${value}"
+                               ${isRequired ? 'required' : ''}>
+                    </div>
+                `;
+            }
+        });
+        
+        html += '</form>';
+        
+        if (data) {
+            html += `<input type="hidden" id="itemId" value="${data.id}">`;
+        }
+        
+        document.getElementById('formContent').innerHTML = html;
+    }
+    
     function generateStandardForm(title, data = null) {
         const config = fieldConfigs[currentTable];
         let html = '<form id="itemForm">';
@@ -875,8 +1004,29 @@
                 } else {
                     data[key] = value;
                 }
+            } else if (currentTable === 'pilotos' || currentTable === 'autobuses' || currentTable === 'rutas') {
+                // Procesar campos específicos para transporte (pilotos, autobuses, rutas)
+                if (key === 'empresa') {
+                    // Convertir empresa a entero para la llave foránea
+                    data[key] = value ? parseInt(value) : null;
+                } else if (key === 'capacidad') {
+                    // Convertir capacidad a entero
+                    data[key] = value ? parseInt(value) : null;
+                } else if (key === 'activo') {
+                    // Los checkboxes pueden venir como string o boolean
+                    data[key] = value === 'on' || value === true || value === 'true';
+                } else {
+                    data[key] = value.trim ? value.trim() : value;
+                }
             } else {
                 data[key] = value;
+            }
+        }
+        
+        // Para campos de transporte, asegurar que 'activo' tenga un valor por defecto si no está presente
+        if (currentTable === 'pilotos' || currentTable === 'autobuses' || currentTable === 'rutas' || currentTable === 'empresas-transporte') {
+            if (!data.hasOwnProperty('activo')) {
+                data.activo = false; // Si el checkbox no está marcado, no aparece en formData
             }
         }
         
@@ -923,6 +1073,28 @@
             }
         }
         
+        // Validación específica para transporte
+        if (currentTable === 'pilotos') {
+            if (!data.nombre || !data.documento || !data.licencia_numero || !data.empresa) {
+                alert('Por favor, complete todos los campos requeridos: Nombre, Documento, Licencia y Empresa.');
+                return;
+            }
+        } else if (currentTable === 'autobuses') {
+            if (!data.codigo || !data.placa || !data.capacidad || !data.empresa) {
+                alert('Por favor, complete todos los campos requeridos: Código, Placa, Capacidad y Empresa.');
+                return;
+            }
+            if (data.capacidad <= 0 || data.capacidad > 200) {
+                alert('La capacidad debe estar entre 1 y 200 pasajeros.');
+                return;
+            }
+        } else if (currentTable === 'rutas') {
+            if (!data.codigo || !data.nombre || !data.empresa) {
+                alert('Por favor, complete todos los campos requeridos: Código, Nombre y Empresa.');
+                return;
+            }
+        }
+        
         const method = itemId ? 'PUT' : 'POST';
         const url = itemId ? 
             API_BASE + endpoints[currentTable] + itemId + '/' : 
@@ -935,7 +1107,24 @@
             data: JSON.stringify(data),
             contentType: 'application/json',
             success: function(response) {
-                bootstrap.Modal.getInstance(document.getElementById('formModal')).hide();
+                // Ocultar el modal y limpiar backdrop manualmente
+                const modalInstance = bootstrap.Modal.getInstance(document.getElementById('formModal'));
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
+                
+                // Limpiar backdrop manualmente para evitar que quede bloqueada la página
+                setTimeout(() => {
+                    // Remover cualquier backdrop que pueda haber quedado
+                    const backdrops = document.querySelectorAll('.modal-backdrop');
+                    backdrops.forEach(backdrop => backdrop.remove());
+                    
+                    // Remover clases del body que pueden causar problemas
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                }, 200);
+                
                 alert('Elemento guardado exitosamente');
                 
                 // Si hay una lista abierta, recargarla
@@ -1060,7 +1249,11 @@
                 localStorage.setItem('refreshToken', response.refresh);
                 localStorage.setItem('username', username);
                 
-                bootstrap.Modal.getInstance(document.getElementById('loginModal')).hide();
+                const loginModalInstance = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
+                if (loginModalInstance) {
+                    loginModalInstance.hide();
+                }
+                cleanupModalBackdrop();
                 showLoggedInState();
                 
                 // Recargar datos si hay una tabla activa
@@ -1131,6 +1324,20 @@
         });
     }
     
+    // Función para limpiar backdrops de modal
+    function cleanupModalBackdrop() {
+        setTimeout(() => {
+            // Remover cualquier backdrop que pueda haber quedado
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            backdrops.forEach(backdrop => backdrop.remove());
+            
+            // Remover clases del body que pueden causar problemas
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+        }, 200);
+    }
+    
     // Inicializar estado de autenticación al cargar la página
     $(document).ready(function() {
         checkAuthStatus();
@@ -1139,6 +1346,23 @@
         $('#loginForm').on('submit', function(e) {
             e.preventDefault();
             performLogin();
+        });
+        
+        // Agregar event listeners para limpiar backdrop cuando se cierren los modales
+        $('#formModal').on('hidden.bs.modal', function() {
+            cleanupModalBackdrop();
+        });
+        
+        $('#listModal').on('hidden.bs.modal', function() {
+            cleanupModalBackdrop();
+        });
+        
+        $('#optionsModal').on('hidden.bs.modal', function() {
+            cleanupModalBackdrop();
+        });
+        
+        $('#loginModal').on('hidden.bs.modal', function() {
+            cleanupModalBackdrop();
         });
     });
 </script>
