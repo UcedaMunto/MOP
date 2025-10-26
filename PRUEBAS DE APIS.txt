@@ -1,0 +1,14 @@
+
+
+
+curl -X POST http://localhost:80/api/register/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "usuariotest123",
+    "email": "otro@example.com",
+    "password": "MiPasswordSeguro2024!",
+    "password_confirm": "MiPasswordSeguro2024!"
+  }' | python -m json.tool
+
+
+  

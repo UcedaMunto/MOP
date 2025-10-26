@@ -18,7 +18,9 @@ from .serializers import (
     EventoTraficoSerializer,
     EventoTraficoSimpleSerializer,
     EventoTraficoCreateUpdateSerializer,
-    EventoRutaAfectadaSerializer
+    EventoRutaAfectadaSerializer,
+    UserRegistrationSerializer,
+    UserSerializer
 )
 from .filters import (
     TipoEventoFilter,
@@ -591,3 +593,74 @@ def health_check(request):
         'database': 'eventos_trafico',
         'timestamp': timezone.now().isoformat()
     })
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+
+@extend_schema(
+    operation_id="register_user",
+    summary="Registrar nuevo usuario",
+    description="Crea un nuevo usuario en el sistema. Recibe username, password y email en el cuerpo de la petición.",
+    request=UserRegistrationSerializer,
+    responses={
+        201: UserSerializer,
+        400: OpenApiExample(
+            name="Error de validación",
+            value={
+                "username": ["Este nombre de usuario ya está en uso."],
+                "email": ["Este email ya está registrado."],
+                "password": ["Esta contraseña es demasiado común."]
+            }
+        )
+    },
+    tags=["Autenticación"]
+)
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def register_user(request):
+    """
+    Endpoint para registrar un nuevo usuario
+    
+    POST /api/register/
+    
+    Body:
+    {
+        "username": "usuario123",
+        "email": "usuario@email.com", 
+        "password": "contraseña123",
+        "password_confirm": "contraseña123"
+    }
+    
+    Response:
+    {
+        "id": 1,
+        "username": "usuario123",
+        "email": "usuario@email.com",
+        "date_joined": "2024-01-01T12:00:00Z",
+        "is_active": true
+    }
+    """
+    if request.method == "POST":
+        serializer = UserRegistrationSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            # Crear el usuario
+            user = serializer.save()
+            
+            # Retornar los datos del usuario sin la contraseña
+            user_serializer = UserSerializer(user)
+            
+            return Response(
+                {
+                    "message": "Usuario registrado exitosamente",
+                    "user": user_serializer.data
+                },
+                status=status.HTTP_201_CREATED
+            )
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    return Response(
+        {"detail": "Método no permitido"}, 
+        status=status.HTTP_405_METHOD_NOT_ALLOWED
+    )

@@ -19,6 +19,9 @@ api_urlpatterns = [
     
     # Endpoint de salud (fuera del router)
     path('health/', views.health_check, name='health_check'),
+    
+    # Endpoint de registro de usuarios
+    path('register/', views.register_user, name='register_user'),
 ]
 
 # URLs por defecto

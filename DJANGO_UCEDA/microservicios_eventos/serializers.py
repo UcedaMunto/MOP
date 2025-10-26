@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from decimal import Decimal
 from django.utils import timezone
+from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
 from .models import TipoEvento, NivelGravedad, EstadoEvento, EventoTrafico, EventoRutaAfectada
 
 
@@ -308,3 +310,86 @@ class EventoTraficoCreateUpdateSerializer(serializers.ModelSerializer):
             })
 
         return data
+
+
+class UserRegistrationSerializer(serializers.ModelSerializer):
+    """
+    Serializer para el registro de nuevos usuarios
+    """
+    password = serializers.CharField(
+        write_only=True,
+        min_length=8,
+        help_text="Contraseña (mínimo 8 caracteres)"
+    )
+    password_confirm = serializers.CharField(
+        write_only=True,
+        help_text="Confirmación de contraseña"
+    )
+
+    class Meta:
+        model = User
+        fields = ["id", "username", "email", "password", "password_confirm", "date_joined"]
+        read_only_fields = ["id", "date_joined"]
+
+    def validate_username(self, value):
+        """Validar que el username no esté vacío y sea único"""
+        if not value or not value.strip():
+            raise serializers.ValidationError("El nombre de usuario no puede estar vacío.")
+        
+        value = value.strip().lower()
+        
+        # Verificar que no exista otro usuario con el mismo username
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("Este nombre de usuario ya está en uso.")
+        
+        return value
+
+    def validate_email(self, value):
+        """Validar que el email sea válido y único"""
+        if not value or not value.strip():
+            raise serializers.ValidationError("El email es requerido.")
+        
+        value = value.strip().lower()
+        
+        # Verificar que no exista otro usuario con el mismo email
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Este email ya está registrado.")
+        
+        return value
+
+    def validate_password(self, value):
+        """Validar la contraseña usando los validadores de Django"""
+        validate_password(value)
+        return value
+
+    def validate(self, data):
+        """Validar que las contraseñas coincidan"""
+        if data["password"] != data["password_confirm"]:
+            raise serializers.ValidationError({
+                "password_confirm": "Las contraseñas no coinciden."
+            })
+        return data
+
+    def create(self, validated_data):
+        """Crear un nuevo usuario"""
+        # Remover password_confirm del diccionario
+        validated_data.pop("password_confirm", None)
+        
+        # Crear el usuario con contraseña hasheada
+        user = User.objects.create_user(
+            username=validated_data["username"],
+            email=validated_data["email"],
+            password=validated_data["password"]
+        )
+        
+        return user
+
+
+class UserSerializer(serializers.ModelSerializer):
+    """
+    Serializer para mostrar información del usuario (sin password)
+    """
+    class Meta:
+        model = User
+        fields = ["id", "username", "email", "date_joined", "is_active"]
+        read_only_fields = ["id", "date_joined", "is_active"]
