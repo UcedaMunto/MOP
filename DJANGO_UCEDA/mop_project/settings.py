@@ -38,11 +38,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.gis',  # GeoDjango
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
     'django_filters',
     'drf_spectacular',
+    'leaflet',  # Django Leaflet para mapas
+    'djgeojson',  # Django GeoJSON
     'microservicios_eventos',
     'microservicios_rutas_viajes',
 ]
@@ -85,15 +88,15 @@ WSGI_APPLICATION = 'mop_project.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': config('DB_ENGINE', default='django.db.backends.sqlite3'),
-        'NAME': config('DB_NAME', default=str(BASE_DIR / 'db.sqlite3')),
-        'USER': config('DB_USER', default=''),
-        'PASSWORD': config('DB_PASSWORD', default=''),
-        'HOST': config('DB_HOST', default=''),
-        'PORT': config('DB_PORT', default=''),
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': config('DB_NAME', default='appdb'),
+        'USER': config('DB_USER', default='admin_user'),
+        'PASSWORD': config('DB_PASSWORD', default='ChangeMe_SuperSeguro_2025!'),
+        'HOST': config('DB_HOST', default='postgres_17'),
+        'PORT': config('DB_PORT', default='5432'),
     },
     'eventos_trafico': {
-        'ENGINE': config('DB_ENGINE', default='django.db.backends.postgresql'),
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': 'eventos_trafico',
         'USER': config('DB_USER', default=''),
         'PASSWORD': config('DB_PASSWORD', default=''),
@@ -307,4 +310,30 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
+}
+
+# Configuración para Leaflet Maps
+LEAFLET_CONFIG = {
+    'DEFAULT_CENTER': (13.7942, -88.8965),  # San Salvador, El Salvador
+    'DEFAULT_ZOOM': 10,
+    'MIN_ZOOM': 3,
+    'MAX_ZOOM': 18,
+    'DEFAULT_PRECISION': 6,
+    'TILES': [
+        ('OpenStreetMap', 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            'attribution': '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }),
+        ('Google Streets', 'http://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}', {
+            'attribution': 'Google'
+        }),
+        ('Google Satellite', 'http://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}', {
+            'attribution': 'Google'
+        }),
+    ]
+}
+
+# Configuración para GeoJSON
+GEOJSON_DEFAULT_CRS = {
+    'type': 'name',
+    'properties': {'name': 'EPSG:4326'}
 }

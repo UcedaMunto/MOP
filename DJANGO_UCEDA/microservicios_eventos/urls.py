@@ -26,6 +26,10 @@ api_urlpatterns = [
     # Endpoint de puntos de georeferencia de eventos de tráfico
     path('points/', views.points_list, name='points_list'),
     path('points/<int:id>/', views.point_detail, name='point_detail'),
+    
+    # Endpoints para mapas y GeoJSON
+    path('geojson/', views.eventos_geojson, name='eventos_geojson'),
+    path('mapa/', views.mapa_eventos, name='mapa_eventos'),
 ]
 
 # URLs por defecto

@@ -819,42 +819,123 @@ def points_list(request):
 
 
 @extend_schema(
-    operation_id='get_traffic_point_by_id',
-    summary='Obtener punto de georeferencia por ID',
-    description='Retorna un punto específico de georeferencia de evento de tráfico por su ID.',
+    operation_id='manage_traffic_point_by_id',
+    summary='Gestionar punto de georeferencia por ID',
+    description='Obtener, actualizar o eliminar un punto específico de georeferencia de evento de tráfico por su ID.',
     tags=['Puntos de Georeferencia'],
     parameters=[
         OpenApiParameter(
             name='id',
             type=OpenApiTypes.INT,
             location=OpenApiParameter.PATH,
-            description='ID del evento/punto a obtener',
+            description='ID del evento/punto a gestionar',
             required=True
         )
     ],
     responses={
         200: PointSerializer,
-        404: 'Punto no encontrado',
+        204: 'Punto eliminado exitosamente',
+        400: 'Datos inválidos',
         401: 'No autenticado',
+        403: 'No tienes permisos para modificar este punto',
+        404: 'Punto no encontrado',
     }
 )
-@api_view(['GET'])
-@permission_classes([IsAuthenticatedOrReadOnly])
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
 def point_detail(request, id):
     """
     GET /points/{id}: Retorna un punto específico de georeferencia por ID.
+    PUT /points/{id}: Actualiza un punto existente por ID (solo si el usuario es el creador).
+    DELETE /points/{id}: Elimina un punto por ID (solo si el usuario es el creador).
     """
     try:
         # Obtener el evento específico por ID
         evento = EventoTrafico.objects.select_related('tipo', 'gravedad', 'estado').get(id=id)
         
-        # Serializar el resultado
-        serializer = PointSerializer(evento)
+        # GET - Obtener punto
+        if request.method == 'GET':
+            serializer = PointSerializer(evento)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        # Verificar permisos de propietario para PUT y DELETE
+        if not (evento.creado_por_username == request.user.username or 
+                str(evento.creado_por_id_externo) == str(request.user.id)):
+            return Response(
+                {"error": "No tienes permisos para modificar este evento"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # PUT - Actualizar punto
+        if request.method == 'PUT':
+            serializer = EventoTraficoCreateUpdateSerializer(evento, data=request.data, partial=True)
+            if serializer.is_valid():
+                # Actualizar metadatos de modificación
+                serializer.save(
+                    actualizado_por_id_externo=request.user.id,
+                    actualizado_por_username=request.user.username
+                )
+                
+                # Retornar datos actualizados en formato Point
+                point_serializer = PointSerializer(evento)
+                return Response(point_serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        # DELETE - Eliminar punto (eliminación lógica)
+        if request.method == 'DELETE':
+            evento.eliminado_en = timezone.now()
+            evento.save()
+            return Response(status=status.HTTP_204_NO_CONTENT)
         
     except EventoTrafico.DoesNotExist:
         return Response(
             {"error": f"No se encontró un punto con ID {id}"},
             status=status.HTTP_404_NOT_FOUND
         )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticatedOrReadOnly])
+def eventos_geojson(request):
+    """
+    Vista para obtener eventos de tráfico en formato GeoJSON
+    compatible con Leaflet y otros sistemas de mapas
+    """
+    from .serializers import EventoTraficoGeoJSONSerializer
+    
+    # Obtener eventos activos con ubicación
+    eventos = EventoTrafico.objects.filter(
+        eliminado_en__isnull=True
+    ).select_related('tipo', 'gravedad', 'estado')
+    
+    # Filtrar solo eventos con coordenadas
+    eventos_con_ubicacion = []
+    for evento in eventos:
+        if evento.ubicacion or (evento.latitud and evento.longitud):
+            eventos_con_ubicacion.append(evento)
+    
+    # Crear GeoJSON FeatureCollection
+    serializer = EventoTraficoGeoJSONSerializer(eventos_con_ubicacion, many=True)
+    
+    geojson = {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": feature['geometry'],
+                "properties": feature['properties']
+            }
+            for feature in serializer.data if feature['geometry']
+        ]
+    }
+    
+    return Response(geojson, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticatedOrReadOnly])
+def mapa_eventos(request):
+    """
+    Vista para renderizar el mapa de eventos de tráfico
+    """
+    return render(request, 'microservicios_eventos/mapa_eventos.html')

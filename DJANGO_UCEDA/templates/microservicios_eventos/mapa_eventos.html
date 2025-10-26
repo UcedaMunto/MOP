@@ -1,0 +1,256 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa de Eventos de Tráfico - MOP</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+        .map-container {
+            position: relative;
+            height: calc(100vh - 80px);
+        }
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+        .legend {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 1000;
+            min-width: 200px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1001;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📍 Mapa de Eventos de Tráfico - MOP El Salvador</h1>
+        <p>Visualización en tiempo real de eventos de tráfico reportados</p>
+    </div>
+    
+    <div class="map-container">
+        <div id="loading" class="loading">
+            <p>Cargando eventos de tráfico...</p>
+        </div>
+        
+        <div id="map"></div>
+        
+        <div class="legend">
+            <h4>📋 Leyenda</h4>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #e74c3c;"></div>
+                <span>Crítico</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #f39c12;"></div>
+                <span>Alto</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #f1c40f;"></div>
+                <span>Medio</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #2ecc71;"></div>
+                <span>Bajo</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #3498db;"></div>
+                <span>Información</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script>
+        // Configuración del mapa centrado en El Salvador
+        const map = L.map('map').setView([13.7942, -88.8965], 10);
+        
+        // Capa base OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        
+        // Función para obtener color según gravedad
+        function getColorBySeverity(severity) {
+            const colors = {
+                'CRITICO': '#e74c3c',
+                'ALTO': '#f39c12', 
+                'MEDIO': '#f1c40f',
+                'BAJO': '#2ecc71',
+                'INFORMATIVO': '#3498db'
+            };
+            return colors[severity] || '#95a5a6';
+        }
+        
+        // Función para crear popup del evento
+        function createPopupContent(properties) {
+            return `
+                <div style="min-width: 250px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h4 style="margin: 0; color: #2c3e50;">
+                            🚨 ${properties.titulo || 'Evento sin título'}
+                        </h4>
+                        <span style="background-color: #007bff; color: white; padding: 3px 8px; border-radius: 12px; font-size: 12px; font-weight: bold;">
+                            ID: ${properties.id || 'N/A'}
+                        </span>
+                    </div>
+                    <p><strong>📋 Tipo:</strong> ${properties.tipo || 'N/A'}</p>
+                    <p><strong>⚠️ Gravedad:</strong> ${properties.gravedad || 'N/A'}</p>
+                    <p><strong>📊 Estado:</strong> ${properties.estado || 'N/A'}</p>
+                    <p><strong>📍 Radio:</strong> ${properties.radio_metros || 0}m</p>
+                    <p><strong>🕐 Ocurrió:</strong> ${properties.fecha_ocurrencia ? new Date(properties.fecha_ocurrencia).toLocaleString('es-SV') : 'N/A'}</p>
+                    <div style="margin-top: 10px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;">
+                        <p style="margin: 0;"><strong>📝 Descripción:</strong></p>
+                        <p style="margin: 5px 0 0 0; font-size: 14px;">${properties.descripcion || 'Sin descripción'}</p>
+                    </div>
+                    <div style="margin-top: 10px; padding: 8px; background-color: #e8f4f8; border-radius: 4px; border-left: 4px solid #007bff;">
+                        <p style="margin: 0 0 8px 0; font-size: 12px; color: #495057;">
+                            💡 <strong>Tip:</strong> Usa este ID (${properties.id || 'N/A'}) para actualizar o eliminar el evento
+                        </p>
+                        <div style="display: flex; gap: 8px; justify-content: center;">
+                            <button onclick="window.open('/', '_blank')" 
+                                    style="background-color: #007bff; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">
+                                🏠 Ir al Panel
+                            </button>
+                            <button onclick="copyToClipboard('${properties.id || 'N/A'}')" 
+                                    style="background-color: #28a745; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">
+                                📋 Copiar ID
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Función para copiar ID al portapapeles
+        function copyToClipboard(id) {
+            navigator.clipboard.writeText(id).then(function() {
+                alert(`ID ${id} copiado al portapapeles! 📋`);
+            }).catch(function(err) {
+                // Fallback para navegadores más antiguos
+                const textArea = document.createElement("textarea");
+                textArea.value = id;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert(`ID ${id} copiado al portapapeles! 📋`);
+            });
+        }
+        
+        // Cargar eventos desde la API
+        async function loadEvents() {
+            try {
+                const response = await fetch('/api/geojson/');
+                const geojsonData = await response.json();
+                
+                // Ocultar loading
+                document.getElementById('loading').style.display = 'none';
+                
+                // Agregar eventos al mapa
+                L.geoJSON(geojsonData, {
+                    pointToLayer: function(feature, latlng) {
+                        const color = getColorBySeverity(feature.properties.gravedad?.toUpperCase());
+                        
+                        return L.circleMarker(latlng, {
+                            radius: Math.max(8, Math.min(20, (feature.properties.radio_metros || 100) / 50)),
+                            fillColor: color,
+                            color: '#2c3e50',
+                            weight: 2,
+                            opacity: 1,
+                            fillOpacity: 0.7
+                        });
+                    },
+                    onEachFeature: function(feature, layer) {
+                        layer.bindPopup(createPopupContent(feature.properties));
+                        
+                        // Highlight on hover
+                        layer.on('mouseover', function(e) {
+                            e.target.setStyle({
+                                weight: 4,
+                                fillOpacity: 0.9
+                            });
+                        });
+                        
+                        layer.on('mouseout', function(e) {
+                            e.target.setStyle({
+                                weight: 2,
+                                fillOpacity: 0.7
+                            });
+                        });
+                    }
+                }).addTo(map);
+                
+                // Ajustar vista si hay eventos
+                if (geojsonData.features && geojsonData.features.length > 0) {
+                    const group = new L.featureGroup();
+                    geojsonData.features.forEach(feature => {
+                        if (feature.geometry && feature.geometry.coordinates) {
+                            const [lng, lat] = feature.geometry.coordinates;
+                            group.addLayer(L.marker([lat, lng]));
+                        }
+                    });
+                    
+                    if (group.getBounds().isValid()) {
+                        map.fitBounds(group.getBounds(), { padding: [20, 20] });
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error cargando eventos:', error);
+                document.getElementById('loading').innerHTML = '<p style="color: red;">❌ Error cargando eventos de tráfico</p>';
+            }
+        }
+        
+        // Cargar eventos al inicializar
+        loadEvents();
+        
+        // Recargar eventos cada 30 segundos
+        setInterval(loadEvents, 30000);
+    </script>
+</body>
+</html>

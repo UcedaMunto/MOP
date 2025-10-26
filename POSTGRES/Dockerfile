@@ -1,4 +1,9 @@
-FROM postgres:16-alpine
+FROM postgis/postgis:16-3.4-alpine
+
+# Instalar dependencias adicionales para PostGIS
+RUN apk update && apk add --no-cache \
+    postgresql-contrib \
+    && rm -rf /var/cache/apk/*
 
 # Copiamos nuestro entrypoint y le damos permisos
 # COPY entrypoint.sh /usr/local/bin/entrypoint.sh

@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.gis.db import models as gis_models
 from django.utils import timezone
 import uuid
 
@@ -105,19 +106,37 @@ class EventoTrafico(models.Model):
         help_text="Estado del evento"
     )
     
-    # Coordenadas geográficas
-    latitud = models.DecimalField(
-        max_digits=9, 
-        decimal_places=6,
-        help_text="Latitud del evento"
-    )
-    longitud = models.DecimalField(
-        max_digits=9, 
-        decimal_places=6,
-        help_text="Longitud del evento"
+    # Coordenadas geográficas (usando PostGIS)
+    ubicacion = gis_models.PointField(
+        srid=4326,  # WGS84 (GPS coordinates)
+        null=True,
+        blank=True,
+        help_text="Ubicación geográfica del evento (latitud, longitud)"
     )
     radio_metros = models.IntegerField(
         help_text="Radio de afectación en metros"
+    )
+    area_afectacion = gis_models.GeometryField(
+        srid=4326,
+        null=True,
+        blank=True,
+        help_text="Área geográfica afectada por el evento (polígono o círculo)"  
+    )
+    
+    # Campos legacy mantenidos para compatibilidad
+    latitud = models.DecimalField(
+        max_digits=12, 
+        decimal_places=9,
+        null=True,
+        blank=True,
+        help_text="Latitud del evento (legacy - usar ubicacion)"
+    )
+    longitud = models.DecimalField(
+        max_digits=12, 
+        decimal_places=9,
+        null=True,
+        blank=True,
+        help_text="Longitud del evento (legacy - usar ubicacion)"
     )
     
     # Fechas
@@ -207,20 +226,39 @@ class EventoTrafico(models.Model):
             models.Index(fields=['estado']),
             models.Index(fields=['fecha_ocurrencia']),
             models.Index(fields=['fecha_reporte']),
-            models.Index(fields=['latitud', 'longitud']),
+            models.Index(fields=['latitud', 'longitud']),  # Índice legacy
             models.Index(fields=['viaje_id_externo']),
             models.Index(fields=['vehiculo_id_externo']),
             models.Index(fields=['correlacion_id']),
             models.Index(fields=['eliminado_en']),
+            # Índices espaciales para PostGIS
+            gis_models.Index(fields=['ubicacion']),
+            gis_models.Index(fields=['area_afectacion']),
         ]
 
     def __str__(self):
         return f"{self.titulo} - {self.tipo.nombre} ({self.estado.nombre})"
 
     def save(self, *args, **kwargs):
+        from django.contrib.gis.geos import Point, GEOSGeometry
+        from django.contrib.gis.measure import D
+        
         # Generar correlacion_id si no existe
         if not self.correlacion_id:
             self.correlacion_id = uuid.uuid4()
+            
+        # Sincronizar ubicacion con latitud/longitud legacy
+        if self.latitud is not None and self.longitud is not None and not self.ubicacion:
+            self.ubicacion = Point(float(self.longitud), float(self.latitud), srid=4326)
+        elif self.ubicacion and (not self.latitud or not self.longitud):
+            self.latitud = self.ubicacion.y
+            self.longitud = self.ubicacion.x
+            
+        # Crear área de afectación circular si no existe
+        if self.ubicacion and self.radio_metros and not self.area_afectacion:
+            # Crear un círculo aproximado usando un buffer
+            self.area_afectacion = self.ubicacion.buffer(self.radio_metros / 111320.0)  # Aproximación para grados
+            
         super().save(*args, **kwargs)
 
 

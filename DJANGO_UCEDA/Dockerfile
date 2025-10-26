@@ -1,6 +1,6 @@
 FROM python:3.12-slim
 
-# Actualizar los paquetes del sistema e instalar dependencias necesarias para compilar pycairo
+# Actualizar los paquetes del sistema e instalar dependencias necesarias para compilar pycairo y GeoDjango
 RUN apt-get update && apt-get install -y \
     build-essential \
     gcc \
@@ -11,6 +11,14 @@ RUN apt-get update && apt-get install -y \
     libgirepository1.0-dev \
     libffi-dev \
     python3-dev \
+    gdal-bin \
+    libgdal-dev \
+    libproj-dev \
+    libgeos-dev \
+    libspatialite-dev \
+    libxml2-dev \
+    libxslt1-dev \
+    zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --upgrade pip

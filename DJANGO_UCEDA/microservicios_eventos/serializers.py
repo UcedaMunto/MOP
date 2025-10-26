@@ -439,3 +439,45 @@ class PointSerializer(serializers.ModelSerializer):
             'updated_by', 'updated_by_id', 'updated_at'
         ]
         read_only_fields = fields
+
+
+class EventoTraficoGeoJSONSerializer(serializers.ModelSerializer):
+    """
+    Serializer especializado para exportar eventos como GeoJSON
+    """
+    geometry = serializers.SerializerMethodField()
+    properties = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = EventoTrafico
+        fields = ['id', 'geometry', 'properties']
+
+    def get_geometry(self, obj):
+        """Retorna la geometría en formato GeoJSON"""
+        if obj.ubicacion:
+            return {
+                "type": "Point",
+                "coordinates": [obj.ubicacion.x, obj.ubicacion.y]
+            }
+        elif obj.latitud and obj.longitud:
+            return {
+                "type": "Point", 
+                "coordinates": [float(obj.longitud), float(obj.latitud)]
+            }
+        return None
+
+    def get_properties(self, obj):
+        """Retorna las propiedades del evento"""
+        return {
+            "id": obj.id,
+            "titulo": obj.titulo,
+            "descripcion": obj.descripcion,
+            "tipo": obj.tipo.nombre if obj.tipo else None,
+            "tipo_codigo": obj.tipo.codigo if obj.tipo else None,
+            "gravedad": obj.gravedad.nombre if obj.gravedad else None,
+            "estado": obj.estado.nombre if obj.estado else None,
+            "radio_metros": obj.radio_metros,
+            "fecha_ocurrencia": obj.fecha_ocurrencia.isoformat() if obj.fecha_ocurrencia else None,
+            "fecha_reporte": obj.fecha_reporte.isoformat() if obj.fecha_reporte else None,
+            "expira_en": obj.expira_en.isoformat() if obj.expira_en else None,
+        }

@@ -85,6 +85,49 @@
     </div>
 </div>
 
+<!-- Sección de Acciones de Eventos -->
+<div class="row mb-4 mt-5">
+    <div class="col-12">
+        <h3 class="text-center mb-2">
+            <i class="bi bi-tools text-primary"></i>
+            Acciones sobre Eventos
+        </h3>
+        <p class="text-center text-muted">Actualizar y eliminar eventos existentes</p>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <!-- Actualizar Eventos -->
+    <div class="col-lg-6 col-md-6">
+        <div class="card h-100 shadow-sm hover-card">
+            <div class="card-body text-center">
+                <i class="bi bi-pencil-square text-warning mb-3" style="font-size: 3rem;"></i>
+                <h5 class="card-title">Actualizar Eventos</h5>
+                <p class="card-text text-muted">Modificar eventos de tráfico existentes</p>
+                <button class="btn btn-warning btn-sm" onclick="showUpdateEventModal()">
+                    <i class="bi bi-pencil me-1"></i>
+                    Actualizar Evento
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Eliminar Eventos -->
+    <div class="col-lg-6 col-md-6">
+        <div class="card h-100 shadow-sm hover-card">
+            <div class="card-body text-center">
+                <i class="bi bi-trash3-fill text-danger mb-3" style="font-size: 3rem;"></i>
+                <h5 class="card-title">Eliminar Eventos</h5>
+                <p class="card-text text-muted">Eliminar eventos de tráfico existentes</p>
+                <button class="btn btn-danger btn-sm" onclick="showDeleteEventModal()">
+                    <i class="bi bi-trash me-1"></i>
+                    Eliminar Evento
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Divider entre Eventos y Transporte -->
 <hr class="my-5" style="border-top: 3px solid #dee2e6;">
 
@@ -548,6 +591,152 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 <button type="button" class="btn btn-info" onclick="searchPointById()" id="searchPointButton">
                     <i class="bi bi-search me-2"></i>Consultar Punto
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para actualizar eventos -->
+<div class="modal fade" id="updateEventModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-pencil-square text-warning me-2"></i>
+                    Actualizar Evento de Tráfico
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="updateEventId" class="form-label">ID del Evento</label>
+                    <input type="number" class="form-control" id="updateEventId" 
+                           placeholder="Ingrese el ID del evento a actualizar" required>
+                </div>
+                
+                <div id="updateEventForm" class="d-none">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="updateTitulo" class="form-label">Título</label>
+                                <input type="text" class="form-control" id="updateTitulo" maxlength="140">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="updateTipo" class="form-label">Tipo de Evento</label>
+                                <select class="form-select" id="updateTipo">
+                                    <option value="">Seleccione tipo...</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="updateDescripcion" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="updateDescripcion" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="updateGravedad" class="form-label">Nivel de Gravedad</label>
+                                <select class="form-select" id="updateGravedad">
+                                    <option value="">Seleccione gravedad...</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="updateRadio" class="form-label">Radio (metros)</label>
+                                <input type="number" class="form-control" id="updateRadio" min="1">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="updateLatitud" class="form-label">Latitud</label>
+                                <input type="number" class="form-control" id="updateLatitud" 
+                                       step="0.000000001" min="-90" max="90">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="updateLongitud" class="form-label">Longitud</label>
+                                <input type="number" class="form-control" id="updateLongitud" 
+                                       step="0.000000001" min="-180" max="180">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="updateEventResult" class="d-none mt-3">
+                    <div class="alert alert-info">
+                        <h6>Resultado de la actualización:</h6>
+                        <div id="updateEventInfo"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-warning" onclick="loadEventForUpdate()" id="loadEventButton">
+                    <i class="bi bi-download me-2"></i>Cargar Evento
+                </button>
+                <button type="button" class="btn btn-success d-none" onclick="updateEvent()" id="updateEventButton">
+                    <i class="bi bi-check-circle me-2"></i>Actualizar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para eliminar eventos -->
+<div class="modal fade" id="deleteEventModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-trash3-fill text-danger me-2"></i>
+                    Eliminar Evento de Tráfico
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="deleteEventId" class="form-label">ID del Evento</label>
+                    <input type="number" class="form-control" id="deleteEventId" 
+                           placeholder="Ingrese el ID del evento a eliminar" required>
+                </div>
+                
+                <div id="deleteEventInfo" class="d-none">
+                    <div class="alert alert-warning">
+                        <h6>Información del evento a eliminar:</h6>
+                        <div id="deleteEventDetails"></div>
+                        <hr>
+                        <div class="text-danger fw-bold">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            ⚠️ Esta acción no se puede deshacer. El evento será eliminado permanentemente.
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="deleteEventResult" class="d-none mt-3">
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle me-2"></i>
+                        Evento eliminado exitosamente.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-warning" onclick="loadEventForDelete()" id="loadDeleteEventButton">
+                    <i class="bi bi-info-circle me-2"></i>Ver Evento
+                </button>
+                <button type="button" class="btn btn-danger d-none" onclick="deleteEvent()" id="deleteEventButton">
+                    <i class="bi bi-trash me-2"></i>Eliminar Definitivamente
                 </button>
             </div>
         </div>
@@ -2210,6 +2399,275 @@
         
         pointDetailInfo.innerHTML = html;
         pointDetailResult.classList.remove('d-none');
+    }
+
+    // Funciones para actualizar eventos
+    function showUpdateEventModal() {
+        const modal = new bootstrap.Modal(document.getElementById('updateEventModal'));
+        // Limpiar formulario
+        document.getElementById('updateEventId').value = '';
+        document.getElementById('updateEventForm').classList.add('d-none');
+        document.getElementById('updateEventResult').classList.add('d-none');
+        document.getElementById('loadEventButton').classList.remove('d-none');
+        document.getElementById('updateEventButton').classList.add('d-none');
+        
+        // Cargar opciones de tipos y gravedad
+        loadSelectOptions();
+        modal.show();
+    }
+
+    async function loadSelectOptions() {
+        try {
+            // Cargar tipos de evento
+            const tiposResponse = await fetch('/api/tipos-evento/');
+            if (tiposResponse.ok) {
+                const tipos = await tiposResponse.json();
+                const tipoSelect = document.getElementById('updateTipo');
+                tipoSelect.innerHTML = '<option value="">Seleccione tipo...</option>';
+                tipos.results.forEach(tipo => {
+                    tipoSelect.innerHTML += `<option value="${tipo.id}">${tipo.nombre}</option>`;
+                });
+            }
+
+            // Cargar niveles de gravedad
+            const gravedadesResponse = await fetch('/api/niveles-gravedad/');
+            if (gravedadesResponse.ok) {
+                const gravedades = await gravedadesResponse.json();
+                const gravedadSelect = document.getElementById('updateGravedad');
+                gravedadSelect.innerHTML = '<option value="">Seleccione gravedad...</option>';
+                gravedades.results.forEach(gravedad => {
+                    gravedadSelect.innerHTML += `<option value="${gravedad.id}">${gravedad.nombre}</option>`;
+                });
+            }
+        } catch (error) {
+            console.error('Error al cargar opciones:', error);
+        }
+    }
+
+    async function loadEventForUpdate() {
+        const eventId = document.getElementById('updateEventId').value;
+        if (!eventId) {
+            alert('Por favor ingrese un ID de evento');
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                alert('Debe iniciar sesión para actualizar eventos');
+                return;
+            }
+
+            const response = await fetch(`/api/points/${eventId}/`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const event = await response.json();
+                
+                // Llenar el formulario con los datos del evento
+                document.getElementById('updateTitulo').value = event.title || '';
+                document.getElementById('updateDescripcion').value = event.description || '';
+                document.getElementById('updateTipo').value = event.type_id || '';
+                document.getElementById('updateGravedad').value = event.severity_id || '';
+                document.getElementById('updateRadio').value = event.radius_meters || '';
+                document.getElementById('updateLatitud').value = event.lat || '';
+                document.getElementById('updateLongitud').value = event.long || '';
+
+                document.getElementById('updateEventForm').classList.remove('d-none');
+                document.getElementById('loadEventButton').classList.add('d-none');
+                document.getElementById('updateEventButton').classList.remove('d-none');
+            } else if (response.status === 404) {
+                alert('No se encontró un evento con ese ID');
+            } else if (response.status === 403) {
+                alert('No tienes permisos para modificar este evento');
+            } else {
+                alert('Error al cargar el evento');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al conectar con el servidor');
+        }
+    }
+
+    async function updateEvent() {
+        const eventId = document.getElementById('updateEventId').value;
+        const token = localStorage.getItem('authToken');
+        
+        if (!token) {
+            alert('Debe iniciar sesión para actualizar eventos');
+            return;
+        }
+
+        // Preparar datos para la actualización
+        const updateData = {};
+        
+        const titulo = document.getElementById('updateTitulo').value.trim();
+        if (titulo) updateData.titulo = titulo;
+        
+        const descripcion = document.getElementById('updateDescripcion').value.trim();
+        if (descripcion) updateData.descripcion = descripcion;
+        
+        const tipo = document.getElementById('updateTipo').value;
+        if (tipo) updateData.tipo = parseInt(tipo);
+        
+        const gravedad = document.getElementById('updateGravedad').value;
+        if (gravedad) updateData.gravedad = parseInt(gravedad);
+        
+        const radio = document.getElementById('updateRadio').value;
+        if (radio) updateData.radio_metros = parseInt(radio);
+        
+        const latitud = document.getElementById('updateLatitud').value;
+        if (latitud) updateData.latitud = parseFloat(latitud);
+        
+        const longitud = document.getElementById('updateLongitud').value;
+        if (longitud) updateData.longitud = parseFloat(longitud);
+
+        try {
+            const response = await fetch(`/api/points/${eventId}/`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(updateData)
+            });
+
+            if (response.ok) {
+                const updatedEvent = await response.json();
+                
+                const html = `
+                    <div class="text-success">
+                        <i class="bi bi-check-circle me-2"></i>
+                        Evento actualizado exitosamente
+                    </div>
+                    <div class="mt-2">
+                        <strong>Título:</strong> ${updatedEvent.title}<br>
+                        <strong>Tipo:</strong> ${updatedEvent.type_name}<br>
+                        <strong>Gravedad:</strong> ${updatedEvent.severity_name}<br>
+                        <strong>Coordenadas:</strong> ${updatedEvent.lat}, ${updatedEvent.long}
+                    </div>
+                `;
+                
+                document.getElementById('updateEventInfo').innerHTML = html;
+                document.getElementById('updateEventResult').classList.remove('d-none');
+                document.getElementById('updateEventButton').classList.add('d-none');
+                
+            } else if (response.status === 403) {
+                alert('No tienes permisos para modificar este evento');
+            } else if (response.status === 400) {
+                const errors = await response.json();
+                alert('Datos inválidos: ' + JSON.stringify(errors));
+            } else {
+                alert('Error al actualizar el evento');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al conectar con el servidor');
+        }
+    }
+
+    // Funciones para eliminar eventos
+    function showDeleteEventModal() {
+        const modal = new bootstrap.Modal(document.getElementById('deleteEventModal'));
+        // Limpiar formulario
+        document.getElementById('deleteEventId').value = '';
+        document.getElementById('deleteEventInfo').classList.add('d-none');
+        document.getElementById('deleteEventResult').classList.add('d-none');
+        document.getElementById('loadDeleteEventButton').classList.remove('d-none');
+        document.getElementById('deleteEventButton').classList.add('d-none');
+        modal.show();
+    }
+
+    async function loadEventForDelete() {
+        const eventId = document.getElementById('deleteEventId').value;
+        if (!eventId) {
+            alert('Por favor ingrese un ID de evento');
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                alert('Debe iniciar sesión para eliminar eventos');
+                return;
+            }
+
+            const response = await fetch(`/api/points/${eventId}/`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const event = await response.json();
+                
+                const html = `
+                    <strong>Título:</strong> ${event.title}<br>
+                    <strong>Descripción:</strong> ${event.description}<br>
+                    <strong>Tipo:</strong> ${event.type_name}<br>
+                    <strong>Gravedad:</strong> ${event.severity_name}<br>
+                    <strong>Coordenadas:</strong> ${event.lat}, ${event.long}<br>
+                    <strong>Creado:</strong> ${new Date(event.created_at).toLocaleString()}
+                `;
+                
+                document.getElementById('deleteEventDetails').innerHTML = html;
+                document.getElementById('deleteEventInfo').classList.remove('d-none');
+                document.getElementById('loadDeleteEventButton').classList.add('d-none');
+                document.getElementById('deleteEventButton').classList.remove('d-none');
+                
+            } else if (response.status === 404) {
+                alert('No se encontró un evento con ese ID');
+            } else if (response.status === 403) {
+                alert('No tienes permisos para eliminar este evento');
+            } else {
+                alert('Error al cargar el evento');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al conectar con el servidor');
+        }
+    }
+
+    async function deleteEvent() {
+        const eventId = document.getElementById('deleteEventId').value;
+        const token = localStorage.getItem('authToken');
+        
+        if (!token) {
+            alert('Debe iniciar sesión para eliminar eventos');
+            return;
+        }
+
+        if (!confirm('¿Está seguro de que desea eliminar este evento? Esta acción no se puede deshacer.')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/points/${eventId}/`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.status === 204) {
+                document.getElementById('deleteEventInfo').classList.add('d-none');
+                document.getElementById('deleteEventResult').classList.remove('d-none');
+                document.getElementById('deleteEventButton').classList.add('d-none');
+                
+            } else if (response.status === 403) {
+                alert('No tienes permisos para eliminar este evento');
+            } else if (response.status === 404) {
+                alert('El evento ya no existe o ha sido eliminado');
+            } else {
+                alert('Error al eliminar el evento');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al conectar con el servidor');
+        }
     }
 </script>
 {% endblock %}
