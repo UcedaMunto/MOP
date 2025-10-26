@@ -393,3 +393,35 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ["id", "username", "email", "date_joined", "is_active"]
         read_only_fields = ["id", "date_joined", "is_active"]
+
+
+class PointSerializer(serializers.ModelSerializer):
+    """
+    Serializer específico para el endpoint /points
+    Retorna eventos de tráfico como puntos de georeferencia
+    """
+    type = serializers.CharField(source='tipo.codigo', read_only=True)
+    type_name = serializers.CharField(source='tipo.nombre', read_only=True)
+    severity = serializers.CharField(source='gravedad.codigo', read_only=True)
+    severity_name = serializers.CharField(source='gravedad.nombre', read_only=True)
+    severity_level = serializers.IntegerField(source='gravedad.orden', read_only=True)
+    status = serializers.CharField(source='estado.codigo', read_only=True)
+    status_name = serializers.CharField(source='estado.nombre', read_only=True)
+    lat = serializers.DecimalField(source='latitud', max_digits=9, decimal_places=6, read_only=True)
+    long = serializers.DecimalField(source='longitud', max_digits=9, decimal_places=6, read_only=True)
+    radius_meters = serializers.IntegerField(source='radio_metros', read_only=True)
+    occurred_at = serializers.DateTimeField(source='fecha_ocurrencia', read_only=True)
+    reported_at = serializers.DateTimeField(source='fecha_reporte', read_only=True)
+    expires_at = serializers.DateTimeField(source='expira_en', read_only=True)
+    
+    class Meta:
+        model = EventoTrafico
+        fields = [
+            'id', 'titulo', 'descripcion',
+            'type', 'type_name',
+            'severity', 'severity_name', 'severity_level',
+            'status', 'status_name',
+            'lat', 'long', 'radius_meters',
+            'occurred_at', 'reported_at', 'expires_at'
+        ]
+        read_only_fields = fields

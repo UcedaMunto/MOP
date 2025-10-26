@@ -9,7 +9,7 @@ Este archivo define el mapeo de URLs principales del proyecto, incluyendo:
 
 La estructura de URLs sigue las mejores prácticas de REST API:
 - /api/ - Endpoints principales de la API
-- /api/token/ - Autenticación JWT
+- /api/login/ - Autenticación JWT
 - /docs/ - Documentación Swagger
 - /redoc/ - Documentación ReDoc
 
@@ -114,8 +114,8 @@ urlpatterns = [
     # AUTENTICACIÓN JWT (JSON WEB TOKENS)
     # ==========================================
     # Endpoint para obtener par de tokens (access + refresh)
-    # POST /api/token/ con username/password -> retorna access_token y refresh_token
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    # POST /api/login/ con username/password -> retorna access_token y refresh_token
+    path('api/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     
     # Endpoint para renovar token de acceso usando refresh token
     # POST /api/token/refresh/ con refresh_token -> retorna nuevo access_token

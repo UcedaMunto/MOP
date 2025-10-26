@@ -1352,7 +1352,7 @@
         loginError.classList.add('d-none');
         
         $.ajax({
-            url: AUTH_BASE + 'token/',
+            url: AUTH_BASE + 'login/',
             method: 'POST',
             data: JSON.stringify({
                 username: username,

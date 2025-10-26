@@ -3,11 +3,12 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.db.models import Q, Count
 from rest_framework import viewsets, status, filters
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 import json
+import math
 from decimal import Decimal
 
 from .models import TipoEvento, NivelGravedad, EstadoEvento, EventoTrafico, EventoRutaAfectada
@@ -20,7 +21,8 @@ from .serializers import (
     EventoTraficoCreateUpdateSerializer,
     EventoRutaAfectadaSerializer,
     UserRegistrationSerializer,
-    UserSerializer
+    UserSerializer,
+    PointSerializer
 )
 from .filters import (
     TipoEventoFilter,
@@ -659,6 +661,138 @@ def register_user(request):
             )
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    return Response(
+        {"detail": "Método no permitido"}, 
+        status=status.HTTP_405_METHOD_NOT_ALLOWED
+    )
+
+
+# Función utilitaria para calcular distancia entre dos puntos usando la fórmula de Haversine
+def calculate_distance(lat1, lon1, lat2, lon2):
+    """
+    Calcula la distancia entre dos puntos geográficos usando la fórmula de Haversine
+    Retorna la distancia en kilómetros
+    """
+    # Convertir a radianes
+    lat1, lon1, lat2, lon2 = map(math.radians, [float(lat1), float(lon1), float(lat2), float(lon2)])
+    
+    # Fórmula de Haversine
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
+    c = 2 * math.asin(math.sqrt(a))
+    
+    # Radio de la Tierra en kilómetros
+    earth_radius_km = 6371
+    
+    return c * earth_radius_km
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+@extend_schema(
+    operation_id='list_traffic_points',
+    summary='Obtener puntos de georeferencia de eventos de tráfico',
+    description='Retorna una lista de todos los eventos de tráfico como puntos de georeferencia. '
+                'Soporta filtrado opcional por tipo, ubicación y proximidad.',
+    parameters=[
+        OpenApiParameter(
+            name='type',
+            description='Filtrar por tipo de evento (código del tipo)',
+            required=False,
+            type=OpenApiTypes.STR,
+            location=OpenApiParameter.QUERY,
+            examples=[
+                OpenApiExample('Accidente', value='ACCIDENTE'),
+                OpenApiExample('Construcción', value='CONSTRUCCION'),
+            ]
+        ),
+        OpenApiParameter(
+            name='lat',
+            description='Latitud para filtrar eventos cercanos (debe usarse con long y radius)',
+            required=False,
+            type=OpenApiTypes.NUMBER,
+            location=OpenApiParameter.QUERY,
+            examples=[
+                OpenApiExample('Latitud ejemplo', value=40.7128),
+            ]
+        ),
+        OpenApiParameter(
+            name='long',
+            description='Longitud para filtrar eventos cercanos (debe usarse con lat y radius)',
+            required=False,
+            type=OpenApiTypes.NUMBER,
+            location=OpenApiParameter.QUERY,
+            examples=[
+                OpenApiExample('Longitud ejemplo', value=-74.0060),
+            ]
+        ),
+        OpenApiParameter(
+            name='radius',
+            description='Radio en kilómetros para filtrar eventos cercanos (debe usarse con lat y long)',
+            required=False,
+            type=OpenApiTypes.NUMBER,
+            location=OpenApiParameter.QUERY,
+            examples=[
+                OpenApiExample('Radio 10km', value=10),
+                OpenApiExample('Radio 50km', value=50),
+            ]
+        ),
+    ],
+    responses={
+        200: PointSerializer(many=True),
+        401: 'No autenticado',
+    }
+)
+def points_list(request):
+    """
+    GET /points: Retorna una lista de todos los puntos de georeferencia de eventos de tráfico.
+    Soporta filtrado opcional por tipo y proximidad geográfica.
+    """
+    if request.method == 'GET':
+        # Obtener todos los eventos de tráfico
+        queryset = EventoTrafico.objects.select_related('tipo', 'gravedad', 'estado')
+        
+        # Filtro por tipo de evento
+        event_type = request.GET.get('type')
+        if event_type:
+            queryset = queryset.filter(tipo__codigo__iexact=event_type)
+        
+        # Filtros geográficos
+        lat = request.GET.get('lat')
+        lon = request.GET.get('long')  # long es palabra reservada, usamos lon
+        radius = request.GET.get('radius')
+        
+        # Si se proporcionan parámetros geográficos, filtrar por proximidad
+        if lat and lon and radius:
+            try:
+                lat = float(lat)
+                lon = float(lon)
+                radius = float(radius)
+                
+                # Filtrar eventos dentro del radio especificado
+                filtered_events = []
+                for evento in queryset:
+                    distance = calculate_distance(lat, lon, evento.latitud, evento.longitud)
+                    if distance <= radius:
+                        filtered_events.append(evento.id)
+                
+                queryset = queryset.filter(id__in=filtered_events)
+                
+            except (ValueError, TypeError):
+                return Response(
+                    {"error": "Los parámetros lat, long y radius deben ser números válidos"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        
+        # Serializar los resultados
+        serializer = PointSerializer(queryset, many=True)
+        
+        return Response({
+            "count": queryset.count(),
+            "results": serializer.data
+        }, status=status.HTTP_200_OK)
     
     return Response(
         {"detail": "Método no permitido"}, 

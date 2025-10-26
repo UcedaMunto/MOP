@@ -22,6 +22,9 @@ api_urlpatterns = [
     
     # Endpoint de registro de usuarios
     path('register/', views.register_user, name='register_user'),
+    
+    # Endpoint de puntos de georeferencia de eventos de tráfico
+    path('points/', views.points_list, name='points_list'),
 ]
 
 # URLs por defecto
