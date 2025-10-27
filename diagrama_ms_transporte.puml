@@ -1,0 +1,109 @@
+@startuml ms_transporte
+' ==============================================
+' MS Transporte - Diagrama Detallado
+' ==============================================
+!theme plain
+
+entity "empresa_transporte" as empresa {
+  * id : BIGSERIAL <<PK>>
+  --
+  nombre : VARCHAR(120)
+  codigo : VARCHAR(32) <<UQ>>
+  contacto : VARCHAR(120)
+  telefono : VARCHAR(32)
+  activo : BOOLEAN
+  creado_en : TIMESTAMPTZ
+  actualizado_en : TIMESTAMPTZ
+}
+
+entity "piloto" as piloto {
+  * id : BIGSERIAL <<PK>>
+  --
+  empresa_id : BIGINT <<FK>>
+  nombre : VARCHAR(120)
+  documento : VARCHAR(32)
+  licencia_numero : VARCHAR(32)
+  telefono : VARCHAR(32)
+  activo : BOOLEAN
+  creado_en : TIMESTAMPTZ
+}
+
+entity "autobus" as autobus {
+  * id : BIGSERIAL <<PK>>
+  --
+  empresa_id : BIGINT <<FK>>
+  codigo : VARCHAR(32) <<UQ>>
+  placa : VARCHAR(16) <<UQ>>
+  capacidad : INTEGER
+  activo : BOOLEAN
+  creado_en : TIMESTAMPTZ
+}
+
+entity "ruta" as ruta {
+  * id : BIGSERIAL <<PK>>
+  --
+  empresa_id : BIGINT <<FK>>
+  codigo : VARCHAR(32) <<UQ>>
+  nombre : VARCHAR(120)
+  descripcion : TEXT
+  activo : BOOLEAN
+  creado_en : TIMESTAMPTZ
+}
+
+entity "parada" as parada {
+  * id : BIGSERIAL <<PK>>
+  --
+  ruta_id : BIGINT <<FK>>
+  nombre : VARCHAR(120)
+  orden : INTEGER
+  sentido : VARCHAR(16)
+  latitud : DECIMAL(9,6)
+  longitud : DECIMAL(9,6)
+  activo : BOOLEAN
+}
+
+entity "asignacion_autobus_ruta" as asignacion {
+  * id : BIGSERIAL <<PK>>
+  --
+  autobus_id : BIGINT <<FK>>
+  ruta_id : BIGINT <<FK>>
+  piloto_id : BIGINT <<FK>>
+  fecha : DATE
+  hora_inicio : TIME
+  hora_fin : TIME
+  estado : VARCHAR(16)
+}
+
+entity "viaje_autobus" as viaje {
+  * id : BIGSERIAL <<PK>>
+  --
+  asignacion_id : BIGINT <<FK>>
+  numero_viaje : INTEGER
+  estado : VARCHAR(16)
+  inicio_en : TIMESTAMPTZ
+  fin_en : TIMESTAMPTZ
+  distancia_km : NUMERIC(8,3)
+}
+
+entity "posicion_autobus" as posicion {
+  * id : BIGSERIAL <<PK>>
+  --
+  viaje_id : BIGINT <<FK>>
+  latitud : DECIMAL(9,6)
+  longitud : DECIMAL(9,6)
+  velocidad_kmh : NUMERIC(6,2)
+  capturado_en : TIMESTAMPTZ
+}
+
+' Relaciones
+empresa ||--o{ piloto
+empresa ||--o{ autobus
+empresa ||--o{ ruta
+ruta ||--o{ parada
+autobus ||--o{ asignacion
+ruta ||--o{ asignacion
+piloto ||--o{ asignacion
+asignacion ||--o{ viaje
+viaje ||--o{ posicion
+
+@enduml

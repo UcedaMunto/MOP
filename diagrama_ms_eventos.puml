@@ -1,0 +1,85 @@
+@startuml ms_eventos
+' ==============================================
+' MS Eventos - Diagrama Detallado
+' ==============================================
+!theme plain
+
+entity "tipo_evento" as tipo_evento {
+  * id : SMALLINT <<PK>>
+  --
+  codigo : VARCHAR(32) <<UQ>>
+  nombre : VARCHAR(64)
+  descripcion : TEXT
+  activo : BOOLEAN
+  creado_en : TIMESTAMPTZ
+}
+
+entity "nivel_gravedad" as nivel_gravedad {
+  * id : SMALLINT <<PK>>
+  --
+  codigo : VARCHAR(16) <<UQ>>
+  nombre : VARCHAR(32)
+  orden : SMALLINT
+  creado_en : TIMESTAMPTZ
+}
+
+entity "estado_evento" as estado_evento {
+  * id : SMALLINT <<PK>>
+  --
+  codigo : VARCHAR(16) <<UQ>>
+  nombre : VARCHAR(32)
+  creado_en : TIMESTAMPTZ
+}
+
+entity "evento_trafico" as evento_trafico {
+  * id : BIGSERIAL <<PK>>
+  --
+  titulo : VARCHAR(140)
+  descripcion : TEXT
+  tipo_id : SMALLINT <<FK>>
+  gravedad_id : SMALLINT <<FK>>
+  estado_id : SMALLINT <<FK>>
+  latitud : DECIMAL(9,6)
+  longitud : DECIMAL(9,6)
+  radio_metros : INTEGER
+  fecha_ocurrencia : TIMESTAMPTZ
+  fecha_reporte : TIMESTAMPTZ
+  --
+  ' Referencias externas
+  viaje_id_externo : VARCHAR(64)
+  viaje_sistema_origen : VARCHAR(32)
+  vehiculo_id_externo : VARCHAR(64)
+  conductor_id_externo : VARCHAR(64)
+  correlacion_id : UUID
+  --
+  creado_por : BIGINT
+  creado_en : TIMESTAMPTZ
+}
+
+entity "evento_ruta_afectada" as evento_ruta {
+  * id : BIGSERIAL <<PK>>
+  --
+  evento_id : BIGINT <<FK>>
+  sistema_origen : VARCHAR(32)
+  ruta_id_externo : VARCHAR(64)
+  ruta_codigo : VARCHAR(32)
+  ruta_nombre : VARCHAR(120)
+  relevancia : VARCHAR(16)
+  creado_en : TIMESTAMPTZ
+}
+
+' Relaciones
+tipo_evento ||--o{ evento_trafico
+nivel_gravedad ||--o{ evento_trafico
+estado_evento ||--o{ evento_trafico
+evento_trafico ||--o{ evento_ruta
+
+note top of evento_trafico
+  Referencias externas a MS Transporte:
+  - viaje_id_externo
+  - vehiculo_id_externo
+  - conductor_id_externo
+  Sin FK directo (microservicios)
+end note
+
+@enduml

@@ -1,11 +1,11 @@
 # Guía de Despliegue en Producción
-## IP Pública: 34.45.166.79
+## IP Pública: 34.172.232.36
 
 ### Configuraciones Realizadas
 
 #### 1. Variables de Entorno (`.env`)
 - ✅ `DEBUG=False` - Deshabilitado para producción
-- ✅ `ALLOWED_HOSTS` actualizado para incluir la IP pública `34.45.166.79`
+- ✅ `ALLOWED_HOSTS` actualizado para incluir la IP pública `34.172.232.36`
 - ✅ `CORS_ALLOW_ALL_ORIGINS=False` - Restringido para producción
 
 #### 2. Configuración Django (`settings.py`)
@@ -25,10 +25,10 @@
 
 ### URLs de Acceso en Producción
 
-- **API Base**: `http://34.45.166.79/api/`
-- **Admin**: `http://34.45.166.79/admin/`
-- **Documentación API**: `http://34.45.166.79/api/docs/`
-- **Schema API**: `http://34.45.166.79/api/schema/`
+- **API Base**: `http://34.172.232.36/api/`
+- **Admin**: `http://34.172.232.36/admin/`
+- **Documentación API**: `http://34.172.232.36/api/docs/`
+- **Schema API**: `http://34.172.232.36/api/schema/`
 
 ### Comandos de Despliegue
 
@@ -65,14 +65,14 @@ Después del despliegue, verificar:
 
 1. **API Health Check**:
    ```bash
-   curl http://34.45.166.79/api/health/
+   curl http://34.172.232.36/api/health/
    ```
 
 2. **Documentación API**:
-   Acceder a `http://34.45.166.79/api/docs/`
+   Acceder a `http://34.172.232.36/api/docs/`
 
 3. **Admin Panel**:
-   Acceder a `http://34.45.166.79/admin/`
+   Acceder a `http://34.172.232.36/admin/`
 
 ### Consideraciones Adicionales
 

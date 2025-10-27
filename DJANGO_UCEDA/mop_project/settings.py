@@ -201,7 +201,7 @@ SPECTACULAR_SETTINGS = {
     'SERVERS': [
         {'url': 'http://localhost:8000', 'description': 'Servidor de Desarrollo'},
         {'url': 'http://127.0.0.1:8000', 'description': 'Servidor Local'},
-        {'url': 'http://34.45.166.79', 'description': 'Servidor de Producción'},
+        {'url': 'http://34.172.232.36', 'description': 'Servidor de Producción'},
     ],
     'TAGS': [
         {'name': 'Catálogos', 'description': 'Gestión de catálogos (tipos, estados, niveles)'},
@@ -227,8 +227,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
     "http://127.0.0.1:8080",
     "http://localhost:8000",
-    "http://34.45.166.79",
-    "http://34.45.166.79:80",
+    "http://34.172.232.36",
+    "http://34.172.232.36:80",
 ]
 
 # Para desarrollo, permitir todos los orígenes (SOLO EN DESARROLLO)
@@ -256,8 +256,8 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:8080",
     "http://localhost:8000",
     "http://localhost",
-    "http://34.45.166.79",
-    "http://34.45.166.79:80",
+    "http://34.172.232.36",
+    "http://34.172.232.36:80",
 ]
 
 # Logging para debug

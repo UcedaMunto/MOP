@@ -1,0 +1,154 @@
+@startuml mop_simplificado
+' ==============================================
+' ERD Simplificado: Sistema MOP - Vista General de Relaciones
+' ==============================================
+!theme plain
+skinparam class {
+  BackgroundColor White
+  BorderColor #333
+  ArrowColor #333
+}
+
+package "MS Auth" {
+  class Usuario {
+    +id: BIGSERIAL
+    +correo: CITEXT
+    +rol: VARCHAR
+  }
+  
+  class SesionAuth {
+    +id: BIGSERIAL
+    +usuario_id: BIGINT
+    +token_hash: TEXT
+  }
+}
+
+package "MS Eventos" {
+  class TipoEvento {
+    +id: SMALLINT
+    +codigo: VARCHAR
+  }
+  
+  class NivelGravedad {
+    +id: SMALLINT
+    +codigo: VARCHAR
+  }
+  
+  class EstadoEvento {
+    +id: SMALLINT
+    +codigo: VARCHAR
+  }
+  
+  class EventoTrafico {
+    +id: BIGSERIAL
+    +titulo: VARCHAR
+    +latitud: DECIMAL
+    +longitud: DECIMAL
+    +viaje_id_externo: VARCHAR
+  }
+  
+  class EventoRutaAfectada {
+    +id: BIGSERIAL
+    +evento_id: BIGINT
+    +ruta_id_externo: VARCHAR
+  }
+}
+
+package "MS Transporte" {
+  class EmpresaTransporte {
+    +id: BIGSERIAL
+    +nombre: VARCHAR
+  }
+  
+  class Piloto {
+    +id: BIGSERIAL
+    +empresa_id: BIGINT
+    +nombre: VARCHAR
+  }
+  
+  class Autobus {
+    +id: BIGSERIAL
+    +empresa_id: BIGINT
+    +placa: VARCHAR
+  }
+  
+  class Ruta {
+    +id: BIGSERIAL
+    +empresa_id: BIGINT
+    +codigo: VARCHAR
+  }
+  
+  class Parada {
+    +id: BIGSERIAL
+    +ruta_id: BIGINT
+    +nombre: VARCHAR
+  }
+  
+  class AsignacionAutobusRuta {
+    +id: BIGSERIAL
+    +autobus_id: BIGINT
+    +ruta_id: BIGINT
+    +piloto_id: BIGINT
+  }
+  
+  class ViajeAutobus {
+    +id: BIGSERIAL
+    +asignacion_id: BIGINT
+    +estado: VARCHAR
+  }
+  
+  class PosicionAutobus {
+    +id: BIGSERIAL
+    +viaje_id: BIGINT
+    +latitud: DECIMAL
+    +longitud: DECIMAL
+  }
+}
+
+package "MS Notificaciones" {
+  class ClienteExterno {
+    +id: BIGSERIAL
+    +nombre: VARCHAR
+  }
+  
+  class SuscripcionAlerta {
+    +id: BIGSERIAL
+    +cliente_id: BIGINT
+    +tipo_objetivo: VARCHAR
+  }
+  
+  class Notificacion {
+    +id: BIGSERIAL
+    +cliente_id: BIGINT
+    +viaje_id_externo: VARCHAR
+  }
+}
+
+' Relaciones intra-microservicio
+Usuario ||--o{ SesionAuth
+
+EmpresaTransporte ||--o{ Piloto
+EmpresaTransporte ||--o{ Autobus
+EmpresaTransporte ||--o{ Ruta
+Ruta ||--o{ Parada
+Autobus ||--o{ AsignacionAutobusRuta
+Ruta ||--o{ AsignacionAutobusRuta
+Piloto ||--o{ AsignacionAutobusRuta
+AsignacionAutobusRuta ||--o{ ViajeAutobus
+ViajeAutobus ||--o{ PosicionAutobus
+
+TipoEvento ||--o{ EventoTrafico
+NivelGravedad ||--o{ EventoTrafico
+EstadoEvento ||--o{ EventoTrafico
+Usuario ||--o{ EventoTrafico
+EventoTrafico ||--o{ EventoRutaAfectada
+
+ClienteExterno ||--o{ SuscripcionAlerta
+ClienteExterno ||--o{ Notificacion
+SuscripcionAlerta ||--o{ Notificacion
+
+' Relación inter-microservicio (referencia externa)
+ViajeAutobus ..> EventoTrafico : viaje_id_externo
+note on link : Sin FK - Referencia externa
+
+@enduml

@@ -1,0 +1,80 @@
+@startuml ms_auth_notificaciones
+' ==============================================
+' MS Auth y Notificaciones - Diagrama Detallado
+' ==============================================
+!theme plain
+
+package "MS Auth" {
+  entity "usuario" as usuario {
+    * id : BIGSERIAL <<PK>>
+    --
+    correo : CITEXT <<UQ>>
+    contrasena_hash : TEXT
+    nombre_mostrar : VARCHAR(80)
+    rol : VARCHAR(20)
+    activo : BOOLEAN
+    creado_en : TIMESTAMPTZ
+    ultimo_login : TIMESTAMPTZ
+  }
+
+  entity "sesion_autenticacion" as sesion {
+    * id : BIGSERIAL <<PK>>
+    --
+    usuario_id : BIGINT <<FK>>
+    token_refresco_hash : TEXT <<UQ>>
+    agente_usuario : TEXT
+    direccion_ip : INET
+    expira_en : TIMESTAMPTZ
+    creado_en : TIMESTAMPTZ
+    revocado_en : TIMESTAMPTZ
+  }
+}
+
+package "MS Notificaciones" {
+  entity "cliente_externo" as cliente {
+    * id : BIGSERIAL <<PK>>
+    --
+    nombre : VARCHAR(120)
+    correo : CITEXT
+    telefono : VARCHAR(32)
+    canal_preferido : VARCHAR(16)
+    token_push : TEXT
+    activo : BOOLEAN
+    creado_en : TIMESTAMPTZ
+  }
+
+  entity "suscripcion_alerta" as suscripcion {
+    * id : BIGSERIAL <<PK>>
+    --
+    cliente_id : BIGINT <<FK>>
+    tipo_objetivo : VARCHAR(12)
+    objetivo_id : BIGINT
+    objetivo_externo : VARCHAR(64)
+    umbral_metros : INTEGER
+    ventana_minutos : INTEGER
+    activo : BOOLEAN
+  }
+
+  entity "notificacion" as notificacion {
+    * id : BIGSERIAL <<PK>>
+    --
+    cliente_id : BIGINT <<FK>>
+    suscripcion_id : BIGINT <<FK>>
+    ruta_id_externo : VARCHAR(64)
+    viaje_id_externo : VARCHAR(64)
+    distancia_m : INTEGER
+    eta_minutos : INTEGER
+    canal : VARCHAR(16)
+    mensaje : TEXT
+    enviado_en : TIMESTAMPTZ
+    entregado : BOOLEAN
+  }
+}
+
+' Relaciones
+usuario ||--o{ sesion
+cliente ||--o{ suscripcion
+cliente ||--o{ notificacion
+suscripcion ||--o{ notificacion
+
+@enduml
